@@ -1,0 +1,363 @@
+{
+  "@@locale": "en",
+  "homeTab": "Home",
+  "filmsTab": "Films",
+  "academyTab": "Academy",
+  "discoverTab": "Discover",
+  "profileTab": "Profile",
+  "appTitle": "Don't Skip Humanity",
+  "home": "Home",
+  "films": "Films",
+  "studio": "Studio",
+  "academy": "Academy",
+  "profile": "Profile",
+  "search": "Search",
+  "seeAll": "See All",
+  "retry": "Retry",
+  "error": "Error",
+  "loading": "Loading...",
+  "searchPlaceholder": "Search...",
+  "heroFilmTag": "FILM",
+  "heroTitle": "Nothing Mends Inside",
+  "heroSubtitle": "A story of displacement and resilience",
+  "actionEvents": "Events",
+  "actionRead": "Read",
+  "actionAbout": "About",
+  "actionSupport": "Support",
+  "featuredNow": "Featured Now",
+  "featuredCardTitle": "Political Education for\nFilmmakers",
+  "filmCardTitle": "Mother Tongue",
+  "readCardTitle": "We look where the world is told not to look",
+  "readTag": "LONG FORM",
+  "readArticle": "The archive as act of resistance",
+  "eventsTitle": "Events",
+  "eventTitle": "Invisible Borders — A Visual Journey",
+  "eventDate": "Fri Jul 18, 2026 • Mar Mikhael Center, Beirut",
+  "academySectionTag": "ACADEMY",
+  "academyTitle": "Learn From Reality",
+  "academySubtitle": "In-depth courses from real conflicts & human stories.",
+  "browseCourses": "Browse Courses",
+  "academyCourseName": "Carolina Rodriguez",
+  "academyCourseRole": "Political Educator",
+  "ourImpact": "Our Impact",
+  "impactFilmsLabel": "Films",
+  "impactCoursesLabel": "Courses",
+  "impactRaisedLabel": "Raised",
+  "ctaTitle": "Become Part of the Story",
+  "ctaSubtitle": "Every action creates change.",
+  "ctaFundCourse": "Fund a Course",
+  "ctaDonate": "Donate",
+  "dshSupporter": "DSH Supporter",
+  "dshSupporterSubtitle": "Unlock full access & earn loyalty points.",
+  "authWelcomeBack": "Welcome Back",
+  "authSignInToContinue": "Sign in to continue",
+  "authEmailAddress": "Email address",
+  "authPassword": "Password",
+  "authForgotPassword": "Forgot password?",
+  "authSignIn": "Sign in",
+  "authOr": "or",
+  "authContinueWithGoogle": "Continue with Google",
+  "authContinueWithApple": "Continue with Apple",
+  "authDontHaveAccount": "Don't have an account? ",
+  "authSignUp": "Sign Up",
+  "authCreateAccount": "Create account",
+  "authJoinUs": "Join us to get started",
+  "authFullName": "Full Name",
+  "authConfirmPassword": "Confirm Password",
+  "authAlreadyHaveAccount": "Already have an account? ",
+  "authResetPassword": "Reset Password",
+  "authEnterEmailToReset": "Enter your email to receive a reset link",
+  "authSendLink": "Send Link",
+  "authRememberedPassword": "Remembered your password? ",
+  "authVerifyOTP": "Verify OTP",
+  "authEnterOTPSent": "Enter the code sent to your email",
+  "authOTPCode": "OTP Code",
+  "authVerify": "Verify",
+  "authDidntReceiveCode": "Didn't receive code? ",
+  "authResend": "Resend",
+  "onboardingWitness": "Witness.",
+  "onboardingUnderstand": "Understand.",
+  "onboardingAct": "Act.",
+  "onboardingDesc1": "Go beyond the headlines.",
+  "onboardingExplore": "Explore.",
+  "onboardingLearn": "Learn.",
+  "onboardingEngage": "Engage.",
+  "onboardingDesc2": "Stories that shape our world.",
+  "onboardingFund": "Fund.",
+  "onboardingSupport": "Support.",
+  "onboardingChange": "Change.",
+  "onboardingDesc3": "Make a real impact today.",
+  "onboardingSkip": "Skip",
+  "onboardingContinue": "Continue",
+  "homeFocusToday": "FOCUS TODAY",
+  "homeViewMore": "View more",
+  "homeStudioTitle": "Studio",
+  "homeStudioInProduction": "DSH STUDIO - IN PRODUCTION",
+  "homeStudioPreProduction": "DSH STUDIO - PRE-PRODUCTION",
+  "homeInFocusTitle": "In Focus",
+  "homeYoutubeSeries": "Youtube Series - 2026",
+  "homeReadMore": "Read more",
+  "homeMinRead": "min read",
+  "homeSupportStory": "Support a Story",
+  "onboardingNext": "Next",
+  "onboardingGetStarted": "Get Started",
+  "filmsHeroTitle": "Cinema that",
+  "filmsHeroHighlight": "refuses silence.",
+  "filmsExploreDocumentaries": "Explore documentaries",
+  "filmsExploreFiction": "Explore fiction",
+  "filmsFeatured": "Featured Films",
+  "filmsLibrary": "Library",
+  "filmsWatchTrailer": "Watch trailer",
+  "filmsEmptyTitle": "No films yet",
+  "filmsEmptyBody": "New work will appear here as it is published.",
+  "filmsLoadError": "Something went wrong loading films.",
+  "filmsTitleCount": "{count, plural, one{1 title} other{{count} titles}}",
+  "@filmsTitleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "filmsFilmCount": "{count, plural, one{1 film} other{{count} films}}",
+  "@filmsFilmCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "filmFormDocumentary": "Documentary",
+  "filmFormFiction": "Fiction",
+  "filmFormatShort": "Short",
+  "filmFormatSeries": "Series",
+  "filmStageDevelopment": "Development",
+  "filmStageProduction": "Production",
+  "filmStagePostProduction": "Post-production",
+  "filmStageFestivals": "Festivals",
+  "filmStageDistribution": "Distribution",
+  "filmStageImpact": "Impact",
+  "filmWatchTrailerFull": "Watch Trailer",
+  "filmSectionSynopsis": "Synopsis",
+  "filmSectionEditorial": "Editorial Context",
+  "filmSectionCredits": "Credits",
+  "filmSectionStills": "Film Stills",
+  "filmSectionFestivals": "Festivals & Awards",
+  "filmSectionScreenings": "Upcoming Screenings",
+  "filmSectionPress": "Press",
+  "filmSectionMore": "More from DSH",
+  "filmReadMore": "Read more",
+  "filmReadLess": "Read less",
+  "filmCreditDirector": "Director",
+  "filmCreditProducer": "Producer",
+  "filmCreditCoProduction": "Co-production",
+  "filmCreditLanguage": "Language",
+  "filmCreditCountry": "Country",
+  "filmRsvp": "RSVP",
+  "filmSupportTitle": "Help Us Make More Films",
+  "filmSupportBody": "Your support funds stories the world looks away from.",
+  "filmSupportCta": "Support DSH",
+  "filmNotFound": "This film isn’t available.",
+  "filmDurationMinutes": "{count} min",
+  "@filmDurationMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "studioTab": "Studio",
+  "studioHeroTitle": "Work that",
+  "studioHeroHighlight": "refuses silence.",
+  "studioHeroBody": "Docuseries, podcasts, videocasts, and series at the intersection of documentary, journalism, and art.",
+  "studioExploreWork": "Explore work",
+  "studioGetInTouch": "Get in touch",
+  "studioWhatWeDo": "What Studio does",
+  "studioFeaturedProject": "Featured project",
+  "studioLibrary": "Studio Library",
+  "studioViewAll": "View all",
+  "studioViewEpisodes": "View episodes",
+  "studioClose": "Close",
+  "studioFilterAll": "All",
+  "studioFormatDocuseries": "Docuseries",
+  "studioFormatVideocasts": "Videocasts",
+  "studioFormatPodcasts": "Podcasts",
+  "studioFormatSeries": "Series",
+  "studioFormatOther": "Other media",
+  "studioCapDocuseriesTitle": "Docuseries",
+  "studioCapDocuseriesBody": "Long-form documentary series on political, social, and cultural subjects.",
+  "studioCapPodcastsTitle": "Podcasts & Videocasts",
+  "studioCapPodcastsBody": "Conversations that challenge the dominant frame and stay with a subject over time.",
+  "studioCapProductionTitle": "Production Capacity",
+  "studioCapProductionBody": "Developing and making work with partners, broadcasters, and movements.",
+  "studioCapSeriesTitle": "Series",
+  "studioCapSeriesBody": "Episodic audio and video, and the original media built around it.",
+  "studioEmptyTitle": "No studio work yet",
+  "studioEmptyBody": "Projects will appear here as they are published.",
+  "studioLoadError": "Something went wrong loading studio work.",
+  "studioFooter": "© {year} DSH Studio. All rights reserved.",
+  "studioEpisodeCount": "{count, plural, one{1 episode} other{{count} episodes}}",
+  "@studioFooter": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "@studioEpisodeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "studioExploreEpisodes": "Explore episodes",
+  "studioRequestScreener": "Request a screener",
+  "studioRequestScreening": "Request a screening",
+  "studioContactDistribution": "Contact for distribution",
+  "studioCreditProduction": "Production",
+  "studioCreditCoProduction": "Co-production",
+  "studioCreditHosts": "Hosts & creators",
+  "studioCreditPartners": "Partners",
+  "studioCreditYear": "Year",
+  "studioCreditLanguage": "Language",
+  "studioCreditDirection": "Direction",
+  "studioCreditFormat": "Format",
+  "studioCreditCountry": "Country",
+  "studioCreditDuration": "Duration",
+  "studioSectionEpisodes": "Episodes",
+  "studioSeasonNumber": "Season {number}",
+  "studioEpisodeNumber": "Episode {number}",
+  "studioViewEpisode": "View episode",
+  "studioKnowMore": "Know more",
+  "studioGuest": "Guest: {name}",
+  "studioShareProject": "Share this project",
+  "studioShare": "Share",
+  "studioProjectNotFound": "This project isn’t available.",
+  "studioNoEpisodes": "No episodes published yet.",
+  "@studioSeasonNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "@studioEpisodeNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "@studioGuest": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "studioSectionGallery": "Gallery",
+  "studioMoreEpisodes": "More episodes",
+  "studioEpisodeNotFound": "This episode isn’t available.",
+  "authRequiredTitle": "Sign in to continue",
+  "authRequiredEnroll": "You need an account to enrol in a course, so your progress is saved to you.",
+  "authRequiredDonate": "You need an account so your donation is recorded against your profile.",
+  "authRequiredSave": "You need an account so your saved items stay with you.",
+  "authRequiredGeneric": "You need an account to do this.",
+  "authCancel": "Not now",
+  "profileGuestTitle": "You’re browsing as a guest",
+  "profileGuestBody": "Sign in to follow your donations, saved work, and course progress.",
+  "profileSignOut": "Sign out",
+  "profileSignOutConfirm": "Sign out of your account?",
+  "profileMember": "DSH Member",
+  "profileSettings": "Settings",
+  "profileAccount": "Account",
+  "profileLanguage": "Language",
+  "profileAppearance": "Appearance",
+  "profileNotifications": "Notifications",
+  "profilePrivacy": "Privacy policy",
+  "profileTerms": "Terms of use",
+  "profileHelp": "Help & support",
+  "profileAbout": "About DSH",
+  "profileBilling": "Subscription & billing",
+  "profileDonationSettings": "Donation settings",
+  "notificationsTitle": "Notifications",
+  "notificationsEmptyTitle": "Nothing yet",
+  "notificationsEmptyBody": "New films, episodes and course announcements will appear here.",
+  "notificationsGuestTitle": "Sign in to see your notifications",
+  "notificationsGuestBody": "Notifications are tied to your account, so there is nothing to show while you are browsing as a guest.",
+  "timeJustNow": "Just now",
+  "timeMinutesAgo": "{count, plural, one{1 minute ago} other{{count} minutes ago}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeHoursAgo": "{count, plural, one{1 hour ago} other{{count} hours ago}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeDaysAgo": "{count, plural, one{1 day ago} other{{count} days ago}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "studioStatusOngoing": "Ongoing",
+  "studioStatusComplete": "Complete",
+  "studioStatusUpcoming": "Upcoming",
+  "filterTitle": "Filters",
+  "filterClearAll": "Clear all",
+  "filterShowResults": "{count, plural, =0{No results} one{Show 1 result} other{Show {count} results}}",
+  "filterStage": "Stage",
+  "filterForm": "Form",
+  "filterFormat": "Format",
+  "filterStatus": "Status",
+  "filterAny": "All",
+  "filterNoResults": "Nothing matches these filters.",
+  "filterClearFilters": "Clear filters",
+  "searchFilmsHint": "Search films",
+  "searchStudioHint": "Search studio work",
+  "filmsAllTitle": "All films",
+  "studioAllTitle": "All studio work",
+  "@filterShowResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "impactStoriesLabel": "Stories",
+  "supportWhereItGoes": "Where your support goes",
+  "searchTitle": "Search",
+  "searchEverythingHint": "Search films, studio, courses…",
+  "searchIdle": "Type at least 3 letters, or press search on the keyboard.",
+  "searchNoResults": "Nothing found for “{query}”.",
+  "searchRecent": "Recent",
+  "searchBrowse": "Browse",
+  "searchClearRecent": "Clear",
+  "searchResultFilm": "Film",
+  "searchResultStudio": "Studio",
+  "searchResultCourse": "Course",
+  "aboutWhatWeDo": "What we do",
+  "@searchNoResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "browseRead": "Read",
+  "browseEvents": "Events",
+  "browseImpact": "Impact",
+  "browseSupport": "Support",
+  "homeSlowConnection": "This is taking a while. Check your connection, then pull down to refresh."
+}

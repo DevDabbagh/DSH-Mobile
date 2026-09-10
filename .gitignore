@@ -1,0 +1,64 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Firebase config. Not a private key — the API key inside it is meant to ship
+# inside the app — but it names the project and its sender ID, and it is
+# per-environment, so a checked-in copy is one more thing to get wrong when
+# there is ever a second Firebase project. Each machine downloads its own from
+# the Firebase console.
+**/google-services.json
+**/GoogleService-Info.plist
+
+# Signing. Also covered by android/.gitignore, repeated here so a future
+# reorganisation of that file cannot quietly expose the upload key.
+**/key.properties
+**/*.jks
+**/*.keystore
+
+# Anything holding credentials
+.env
+.env.*
+!.env.example
