@@ -713,7 +713,12 @@ class _HitCard extends StatelessWidget {
               height: 88.h,
               child: hit.imageUrl.isEmpty
                   ? const ColoredBox(color: AppColors.darkBackground)
-                  : AppNetworkImage(url: hit.imageUrl, fit: BoxFit.cover),
+                  : AppNetworkImage(
+                      url: hit.imageUrl,
+                      fit: BoxFit.cover,
+                      // 76x88 result rows, and a whole list of them.
+                      thumb: true,
+                    ),
             ),
             Expanded(
               child: Padding(

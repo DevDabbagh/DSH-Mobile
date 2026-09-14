@@ -28,6 +28,23 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
+            <!-- Brings the app back after Google or Apple sign-in.
+                 The provider redirects the browser to this scheme; without
+                 the filter, Android has nothing to hand it to and the user is
+                 left staring at a Custom Tab that will not close.
+
+                 Must match AuthRemoteDataSource.oauthRedirect exactly, AND be
+                 listed in Supabase under Authentication -> URL Configuration
+                 -> Redirect URLs. All three have to agree. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="com.devdabbagh.dsh"
+                    android:host="login-callback"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

@@ -45,6 +45,12 @@ class DriftingMosaic extends StatefulWidget {
   /// roughly an eighth of the original light.
   final bool grayscale;
 
+  /// A colour wash laid over the wall — see [kFilmsHeroTint].
+  ///
+  /// Above the tiles and below the scrim, which is where the website puts it:
+  /// over the photographs, under the fade that carries them into the page.
+  final Gradient? tint;
+
   const DriftingMosaic({
     super.key,
     required this.imageUrls,
@@ -54,7 +60,49 @@ class DriftingMosaic extends StatefulWidget {
     this.opacity = 0.30,
     this.scrim = true,
     this.grayscale = false,
+    this.tint,
   });
+
+  /// The pink wash over the Films hero, copied from the website.
+  ///
+  /// `FilmsListing.tsx` passes its hero mosaic:
+  ///
+  ///   linear-gradient(270deg,
+  ///     rgba(178,52,149,0.20)   0%,
+  ///     rgba(178,52,149,0.09)  32%,
+  ///     rgba(178,52,149,0)     62%)
+  ///
+  /// `rgb(178,52,149)` is `#B23495`, DSH pink. Two things about the angle are
+  /// easy to get backwards, so both are written down:
+  ///
+  ///   · CSS measures the angle clockwise from "to top", so **270deg points
+  ///     left**. The gradient therefore travels right → left.
+  ///   · Colour stops run along that line from its start, which means the 0%
+  ///     stop — the strongest, 0.20 — sits on the **right** edge, and the
+  ///     wash has faded to nothing 62% of the way across.
+  ///
+  /// Read either of those the other way round and the wash appears on the
+  /// wrong side of the screen, at the wrong strength.
+  ///
+  /// The 62%–100% span is transparent; Flutter needs it stated, where CSS
+  /// implies it.
+  ///
+  /// `AlignmentDirectional`, not `Alignment`: the headline under this wash is
+  /// laid out with `PositionedDirectional` and moves to the right in Arabic.
+  /// A fixed right-hand wash would then sit behind the copy instead of
+  /// opposite it. The website does not mirror it because the website has no
+  /// Arabic layout on this page yet.
+  static const Gradient kFilmsHeroTint = LinearGradient(
+    begin: AlignmentDirectional.centerEnd,
+    end: AlignmentDirectional.centerStart,
+    colors: [
+      Color(0x33B23495), // 0.20
+      Color(0x17B23495), // 0.09
+      Color(0x00B23495), // 0
+      Color(0x00B23495),
+    ],
+    stops: [0.0, 0.32, 0.62, 1.0],
+  );
 
   /// The website's tile treatment, as one matrix.
   ///
@@ -148,6 +196,12 @@ class _DriftingMosaicState extends State<DriftingMosaic>
                 ),
               ),
             ),
+            // The colour wash, over the photographs and under the scrim.
+            if (widget.tint != null)
+              DecoratedBox(
+                decoration: BoxDecoration(gradient: widget.tint),
+              ),
+
             // Fades the mosaic into the page: dark at the very top so the
             // header reads, clear through the middle, solid at the bottom so
             // the headline sits on flat colour.
@@ -288,6 +342,16 @@ class _Tile extends StatelessWidget {
       fit: BoxFit.cover,
       // Behind a headline at 30% opacity a shimmer would be noise.
       shimmer: false,
+      // THE SINGLE BIGGEST SAVING IN THE APP
+      //
+      // A mosaic is a dozen of these on screen at once, each about 130
+      // logical pixels wide, and it appears on Films, Studio, Impact and
+      // onboarding. Pulling the 2000px original for every tile is what put
+      // the project over its egress quota.
+      //
+      // These are also the tiles least able to show the difference: greyscale,
+      // tinted, at 30% opacity, behind text.
+      thumb: true,
     );
   }
 }

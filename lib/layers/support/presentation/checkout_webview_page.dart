@@ -95,11 +95,12 @@ class _CheckoutWebViewPageState extends State<CheckoutWebViewPage> {
           },
           onPageStarted: (url) {
             final host = Uri.tryParse(url)?.host ?? '';
-            if (mounted)
+            if (mounted) {
               setState(() {
                 _host = host;
                 _loading = true;
               });
+            }
           },
           onPageFinished: (_) {
             if (mounted) setState(() => _loading = false);

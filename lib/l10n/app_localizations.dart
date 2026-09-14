@@ -709,13 +709,13 @@ abstract class AppLocalizations {
   /// No description provided for @filmsHeroTitle.
   ///
   /// In en, this message translates to:
-  /// **'Cinema that'**
+  /// **'Documentary and fiction that stay close and'**
   String get filmsHeroTitle;
 
   /// No description provided for @filmsHeroHighlight.
   ///
   /// In en, this message translates to:
-  /// **'refuses silence.'**
+  /// **'refuse erasure.'**
   String get filmsHeroHighlight;
 
   /// No description provided for @filmsExploreDocumentaries.
@@ -739,7 +739,7 @@ abstract class AppLocalizations {
   /// No description provided for @filmsLibrary.
   ///
   /// In en, this message translates to:
-  /// **'Library'**
+  /// **'Films Library'**
   String get filmsLibrary;
 
   /// No description provided for @filmsWatchTrailer.
@@ -1713,6 +1713,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This is taking a while. Check your connection, then pull down to refresh.'**
   String get homeSlowConnection;
+
+  /// No description provided for @filmsHeroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'DSH makes documentary and fiction — from development and production to festivals and distribution. Films are not streamed here. This section presents the work with rigour and context, and opens paths to screenings, distribution, and press.'**
+  String get filmsHeroBody;
+
+  /// No description provided for @headerSeeMore.
+  ///
+  /// In en, this message translates to:
+  /// **'See more'**
+  String get headerSeeMore;
 }
 
 class _AppLocalizationsDelegate

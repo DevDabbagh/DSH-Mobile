@@ -22,15 +22,49 @@ class AuthRemoteDataSource {
   /// `full_name` goes into user_metadata so it survives until the profile row
   /// exists — a user who has signed up but not confirmed their email has no
   /// `public_users` row yet.
+  ///
+  /// `locale` is there for the same reason and one more: the confirmation
+  /// email is composed by an Edge Function that runs before any profile row
+  /// exists, and metadata is the only thing it can see. Without it, someone
+  /// who used the app in Portuguese is welcomed in English by the very first
+  /// message DSH ever sends them.
   Future<AuthResponse> signUp(
     String fullName,
     String email,
-    String password,
-  ) {
+    String password, {
+    required String locale,
+  }) {
     return _client.auth.signUp(
       email: email,
       password: password,
-      data: {'full_name': fullName},
+      data: {'full_name': fullName, 'locale': locale},
+    );
+  }
+
+  /// Where the OAuth provider sends the browser once the user has approved.
+  ///
+  /// A custom scheme rather than an https link: the app has no website of its
+  /// own to land on, and this is what Android's intent filter and iOS's
+  /// `CFBundleURLSchemes` entry are registered against. It must be listed in
+  /// Supabase under Authentication → URL Configuration → Redirect URLs, or the
+  /// provider refuses the round trip.
+  static const oauthRedirect = 'com.devdabbagh.dsh://login-callback/';
+
+  /// Hands off to Google or Apple.
+  ///
+  /// Returns as soon as the browser is open — NOT when the user is signed in.
+  /// The session arrives later, through [onAuthStateChange], because the app
+  /// is resumed by the redirect rather than by this call returning. So there
+  /// is nothing useful to await here, and a caller that waits for a user is
+  /// waiting for something that will never come back this way.
+  Future<bool> signInWithProvider(OAuthProvider provider) {
+    return _client.auth.signInWithOAuth(
+      provider,
+      redirectTo: oauthRedirect,
+      // The provider's own page in a Custom Tab / SFSafariViewController,
+      // which is what both Google and Apple require — an embedded webview is
+      // rejected by Google as a possible credential-phishing surface.
+      authScreenLaunchMode: LaunchMode.externalApplication,
     );
   }
 

@@ -32,6 +32,11 @@ class LanguagePickerSheet extends ConsumerWidget {
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet(
       context: context,
+      // The root navigator, so the sheet covers the floating tab bar
+      // instead of sliding up underneath it — the bar is drawn by the
+      // shell, which owns the branch navigator a modal would otherwise
+      // mount inside.
+      useRootNavigator: true,
       backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),

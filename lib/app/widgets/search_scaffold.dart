@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:dsh_mobile/app/config/app_colors.dart';
 import 'package:dsh_mobile/app/config/app_dimensions.dart';
-import 'package:dsh_mobile/l10n/app_localizations.dart';
 
 /// How much has to be typed before a search runs.
 ///
@@ -121,8 +120,6 @@ class _SearchScaffoldState extends State<SearchScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       backgroundColor: AppColors.deepBackground,
       appBar: AppBar(

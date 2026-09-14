@@ -77,6 +77,7 @@ class HomeFilmsRail extends ConsumerWidget {
                                   ? film.posterUrl
                                   : film.thumbnailUrl,
                               fit: BoxFit.cover,
+                              thumb: true,
                             ),
                           ),
                         ),
@@ -198,6 +199,7 @@ class _StudioCard extends StatelessWidget {
                         ? project.coverUrl
                         : project.thumbnailUrl,
                     fit: BoxFit.cover,
+                    thumb: true,
                   ),
                 ),
               ),
@@ -423,6 +425,7 @@ class _AcademyCard extends StatelessWidget {
                         child: AppNetworkImage(
                           url: program.thumbnailUrl,
                           fit: BoxFit.cover,
+                          thumb: true,
                         ),
                       ),
                     ),

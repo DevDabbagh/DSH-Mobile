@@ -82,18 +82,80 @@ class ColorizeOnScroll extends StatefulWidget {
   State<ColorizeOnScroll> createState() => _ColorizeOnScrollState();
 }
 
+/// How much saturation has to move before the image is repainted.
+///
+/// Was 0.01, which is about seventy repaints over the effect's range — one on
+/// most frames of a scroll, for a step nobody can see. 0.06 is a dozen, and
+/// the ramp still reads as smooth because each step is small and the image
+/// underneath is already soft.
+const double _repaintStep = 0.06;
+
 class _ColorizeOnScrollState extends State<ColorizeOnScroll> {
-  double _saturation = 0;
+  /// Not `setState`. The saturation drives one `ColorFiltered` and nothing
+  /// else, so it is published as a value rather than as widget state — a
+  /// `ValueListenableBuilder` around the filter rebuilds that one node
+  /// instead of this whole subtree.
+  final _saturation = ValueNotifier<double>(0);
+
+  ScrollController? _controller;
+
+  /// One pending measurement at a time.
+  ///
+  /// The old version scheduled a post-frame callback from inside its build,
+  /// and its build ran on every scroll tick — so each image queued a callback
+  /// every frame, and each callback walked the render tree with
+  /// `findRenderObject` and `localToGlobal`. Ten images on screen meant ten
+  /// tree walks per frame, and any resulting `setState` scheduled ten more.
+  bool _scheduled = false;
+
+  /// The effect is one-way: colour ramps up and stays. Once an image is fully
+  /// coloured it can never change again, so it stops listening entirely.
+  ///
+  /// This is the difference that matters on a long scroll — everything above
+  /// the fold falls silent, and only the two or three images still climbing
+  /// are doing any work at all.
+  bool _settled = false;
 
   @override
   void initState() {
     super.initState();
-    // First measurement, once this frame has been laid out.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+    _schedule();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final next = HomeScrollScope.maybeOf(context);
+    if (identical(next, _controller)) return;
+
+    _controller?.removeListener(_schedule);
+    _controller = next;
+    _controller?.addListener(_schedule);
+  }
+
+  @override
+  void dispose() {
+    _controller?.removeListener(_schedule);
+    _saturation.dispose();
+    super.dispose();
+  }
+
+  void _schedule() {
+    if (_settled || _scheduled || !mounted) return;
+    _scheduled = true;
+
+    // Measured after the frame rather than during it: reading a position
+    // mid-build gives the previous layout, which lags the finger by a frame
+    // on a fast scroll.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scheduled = false;
+      _measure();
+    });
   }
 
   void _measure() {
-    if (!mounted) return;
+    if (!mounted || _settled) return;
 
     final box = context.findRenderObject() as RenderBox?;
     if (box == null || !box.hasSize) return;
@@ -108,39 +170,35 @@ class _ColorizeOnScrollState extends State<ColorizeOnScroll> {
     final progress = ((screen - top) / (screen * _travel)).clamp(0.0, 1.0);
     final next = progress * _maxSaturation;
 
-    // Only repaint on a visible change. Without this every pixel of scroll
-    // rebuilds every image on screen for a difference nobody can see.
-    if ((next - _saturation).abs() < 0.01) return;
-    setState(() => _saturation = next);
+    if (next >= _maxSaturation - 0.001) {
+      _saturation.value = _maxSaturation;
+      _settled = true;
+      _controller?.removeListener(_schedule);
+      return;
+    }
+
+    if ((next - _saturation.value).abs() < _repaintStep) return;
+    _saturation.value = next;
   }
 
   @override
   Widget build(BuildContext context) {
-    final controller = HomeScrollScope.maybeOf(context);
-
-    if (controller == null) {
-      return ColorFiltered(
-        colorFilter: _saturate(_saturation),
+    // RepaintBoundary around the filter, not inside it.
+    //
+    // `ColorFiltered` is a `saveLayer`; without a boundary its repaints
+    // invalidate the layer its parent is painting into, so one image changing
+    // saturation redraws the rail around it.
+    return RepaintBoundary(
+      child: ValueListenableBuilder<double>(
+        valueListenable: _saturation,
+        // The image subtree is passed through untouched, so only the filter
+        // node rebuilds — never the network image under it.
         child: widget.child,
-      );
-    }
-
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) {
-        // Measured after this frame rather than during it: reading a position
-        // mid-build gives the previous layout, which lags the finger by a
-        // frame on a fast scroll.
-        WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
-
-        return ColorFiltered(
-          colorFilter: _saturate(_saturation),
+        builder: (context, saturation, child) => ColorFiltered(
+          colorFilter: _saturate(saturation),
           child: child,
-        );
-      },
-      // Passed as `child` so the image subtree is not rebuilt on every tick —
-      // only the filter around it changes.
-      child: widget.child,
+        ),
+      ),
     );
   }
 }

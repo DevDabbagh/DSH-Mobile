@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:dsh_mobile/app/config/app_colors.dart';
+import 'package:dsh_mobile/app/widgets/app_network_image.dart';
 import 'package:dsh_mobile/layers/films/presentation/controllers/films_controller.dart';
 import 'package:dsh_mobile/layers/studio/presentation/controllers/studio_controller.dart';
 import 'package:dsh_mobile/layers/support/domain/entities/donation.dart';
@@ -77,12 +78,16 @@ class FundedProjectCard extends ConsumerWidget {
       child: Row(
         children: [
           if (image != null)
-            Image.network(
-              image,
+            // Was Image.network, which caches nothing: every rebuild of this
+            // card re-fetched the still over the network.
+            AppNetworkImage(
+              url: image,
               width: 64.w,
               height: 64.w,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => SizedBox(width: 64.w, height: 64.w),
+              thumb: true,
+              shimmer: false,
+              fallback: SizedBox(width: 64.w, height: 64.w),
             ),
           Expanded(
             child: Padding(

@@ -144,6 +144,7 @@ class _NotificationCard extends StatelessWidget {
                 width: 48.w,
                 height: 48.w,
                 fit: BoxFit.cover,
+                thumb: true,
               ),
             ),
             SizedBox(width: 12.w),

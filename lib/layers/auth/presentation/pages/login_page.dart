@@ -10,6 +10,7 @@ import 'package:dsh_mobile/app/config/app_dimensions.dart';
 import 'package:dsh_mobile/app/widgets/custom_button.dart';
 import 'package:dsh_mobile/app/widgets/custom_text_field.dart';
 import 'package:dsh_mobile/app/widgets/social_button.dart';
+import 'package:dsh_mobile/layers/auth/domain/auth_repository.dart';
 import 'package:dsh_mobile/layers/auth/presentation/controllers/auth_controller.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -58,20 +59,54 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         );
   }
 
+  void _onProvider(SocialProvider provider) {
+    FocusScope.of(context).unfocus();
+    ref.read(authControllerProvider.notifier).signInWithProvider(provider);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final authState = ref.watch(authControllerProvider);
     final isLoading = authState is AsyncLoading;
 
-    ref.listen(authControllerProvider, (previous, next) {
-      if (next is AsyncData) {
-        context.go('/home'); // Or wherever after login
-      } else if (next is AsyncError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error.toString())),
-        );
+    // LEAVE WHEN A USER APPEARS, NOT WHEN A CALL FINISHES
+    //
+    // This used to navigate on any AsyncData from the controller, which was
+    // fine while email and password were the only way in. Google and Apple
+    // broke it: those calls complete as soon as the BROWSER opens, so the
+    // screen would slide away to Home while the user was still picking an
+    // account — and if they cancelled, they came back to a signed-out app
+    // with no sign-in screen to return to.
+    //
+    // Watching the user instead covers every route in, including the OAuth
+    // session that arrives out of nowhere when the redirect resumes the app.
+    ref.listen(currentUserProvider, (previous, next) {
+      final arrived = previous?.valueOrNull == null && next.valueOrNull != null;
+      if (!arrived || !context.mounted) return;
+
+      // Back where they came from — a film, a donation, the profile tab —
+      // rather than always Home. Signing in is something you do in the
+      // middle of doing something else.
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/home');
       }
+    });
+
+    ref.listen(authControllerProvider, (previous, next) {
+      if (next is! AsyncError) return;
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(next.error.toString()),
+            backgroundColor: AppColors.cardSurface,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
     });
 
     return Scaffold(
@@ -178,13 +213,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             SocialButton(
               text: AppLocalizations.of(context)!.authContinueWithGoogle,
               iconPath: 'assets/icons/ic_google.svg',
-              onPressed: () {},
+              onPressed: () => _onProvider(SocialProvider.google),
             ),
             SizedBox(height: 16.h),
             SocialButton(
               text: AppLocalizations.of(context)!.authContinueWithApple,
               iconPath: 'assets/icons/ic_apple_icon.svg',
-              onPressed: () {},
+              onPressed: () => _onProvider(SocialProvider.apple),
             ),
             SizedBox(height: 40.h),
             Row(

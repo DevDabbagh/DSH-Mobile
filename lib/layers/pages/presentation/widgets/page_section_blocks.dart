@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:dsh_mobile/app/config/app_colors.dart';
+import 'package:dsh_mobile/app/widgets/app_network_image.dart';
 import 'package:dsh_mobile/app/supabase/media_url.dart';
 import 'package:dsh_mobile/layers/pages/domain/entities/page_section.dart';
 
@@ -117,12 +118,14 @@ class _Img extends StatelessWidget {
     final url = resolveMediaUrl(src);
     if (url.isEmpty) return const SizedBox.shrink();
 
-    return Image.network(
-      url,
+    // Was Image.network — no disk cache, so scrolling a page section back
+    // into view fetched every image again.
+    return AppNetworkImage(
+      url: url,
       width: width,
       height: height,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(
+      fallback: Container(
         width: width,
         height: height,
         color: AppColors.darkBackground,

@@ -13,7 +13,6 @@ import 'package:dsh_mobile/layers/home/domain/entities/hero_slide.dart';
 import 'package:dsh_mobile/layers/home/domain/entities/home_section.dart';
 import 'package:dsh_mobile/layers/home/presentation/controllers/home_controller.dart';
 import 'package:dsh_mobile/layers/home/presentation/widgets/hero_slide_video.dart';
-import 'package:dsh_mobile/layers/home/presentation/widgets/home_chrome.dart';
 
 /// The featured carousel.
 ///

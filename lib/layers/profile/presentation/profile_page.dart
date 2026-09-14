@@ -153,6 +153,7 @@ class _UserHeader extends StatelessWidget {
                   fit: BoxFit.cover,
                   // An avatar that fails to load should still say who this is.
                   fallback: _Initials(user: user),
+                  thumb: true,
                 )
               : _Initials(user: user),
         ),

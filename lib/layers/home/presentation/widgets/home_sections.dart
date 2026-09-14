@@ -53,6 +53,23 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
   int _letters = 0;
   bool _deleting = false;
 
+  /// The typed text, published as a value rather than held as widget state.
+  ///
+  /// `setState` here would rebuild the whole bar — the container, its border,
+  /// the icon, the fixed word — nine times a second, forever, inside the Home
+  /// scroll view. A `ValueListenableBuilder` around the one `Text` rebuilds
+  /// that node and nothing else. Same pattern as `ColorizeOnScroll`.
+  final _typed = ValueNotifier<String>('');
+
+  /// The word plus its ellipsis, as one string.
+  ///
+  /// The dots used to sit outside the animation — `'$word…'` with only the
+  /// word sliced — so they hung there permanently while the noun came and
+  /// went, which read as a rendering fault rather than as typing. Making them
+  /// part of the target means they are typed last and wiped first, the way a
+  /// person actually deletes.
+  String get _target => '${_words[_word]}…';
+
   /// The fixed half of the line.
   ///
   /// Deliberately NOT the dashboard's `placeholder`. That field holds the old
@@ -74,17 +91,18 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
   @override
   void dispose() {
     _timer?.cancel();
+    _typed.dispose();
     super.dispose();
   }
 
   void _tick() {
-    final word = _words[_word];
+    final target = _target;
 
     Duration next;
-    if (!_deleting && _letters < word.length) {
+    if (!_deleting && _letters < target.length) {
       _letters++;
-      next = _letters == word.length ? _holdFull : _typeStep;
-      if (_letters == word.length) _deleting = true;
+      next = _letters == target.length ? _holdFull : _typeStep;
+      if (_letters == target.length) _deleting = true;
     } else if (_deleting && _letters > 0) {
       _letters--;
       next = _deleteStep;
@@ -95,11 +113,13 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
       next = _typeStep;
     }
 
+    _typed.value = target.substring(0, _letters.clamp(0, target.length));
+
     // A one-shot timer rather than Timer.periodic: the interval changes with
     // the phase, and a periodic timer cannot pause on a finished word.
     _timer = Timer(next, () {
       if (!mounted) return;
-      setState(_tick);
+      _tick();
     });
   }
 
@@ -107,6 +127,7 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
   Widget build(BuildContext context) {
     return homeSection(
       visible: true,
+      gap: 20.h,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: AppDimensions.pagePadding.w),
         // Not a real field. Tapping it opens `/search`, which has the actual
@@ -145,11 +166,19 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
                           fontSize: 13.sp,
                         ),
                       ),
-                      Text(
-                        ' ${_words[_word].substring(0, _letters)}…',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 13.sp,
+                      // Only this node rebuilds on a keystroke, and the
+                      // boundary keeps its repaint out of the layer the rest
+                      // of the bar is painted into.
+                      RepaintBoundary(
+                        child: ValueListenableBuilder<String>(
+                          valueListenable: _typed,
+                          builder: (context, typed, _) => Text(
+                            ' $typed',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 13.sp,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -201,7 +230,7 @@ class HomeQuickActions extends StatelessWidget {
       visible: section.actions.isNotEmpty,
       // Tight: the shortcuts read as a lead-in to the first rail rather than
       // a band floating between two sections.
-      gap: kHomeTightGap,
+      gap: 24.h,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: AppDimensions.pagePadding.w),
         child: Column(

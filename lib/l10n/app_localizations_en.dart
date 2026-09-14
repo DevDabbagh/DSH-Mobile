@@ -315,10 +315,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingGetStarted => 'Get Started';
 
   @override
-  String get filmsHeroTitle => 'Cinema that';
+  String get filmsHeroTitle => 'Documentary and fiction that stay close and';
 
   @override
-  String get filmsHeroHighlight => 'refuses silence.';
+  String get filmsHeroHighlight => 'refuse erasure.';
 
   @override
   String get filmsExploreDocumentaries => 'Explore documentaries';
@@ -330,7 +330,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filmsFeatured => 'Featured Films';
 
   @override
-  String get filmsLibrary => 'Library';
+  String get filmsLibrary => 'Films Library';
 
   @override
   String get filmsWatchTrailer => 'Watch trailer';
@@ -901,4 +901,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get homeSlowConnection =>
       'This is taking a while. Check your connection, then pull down to refresh.';
+
+  @override
+  String get filmsHeroBody =>
+      'DSH makes documentary and fiction — from development and production to festivals and distribution. Films are not streamed here. This section presents the work with rigour and context, and opens paths to screenings, distribution, and press.';
+
+  @override
+  String get headerSeeMore => 'See more';
 }

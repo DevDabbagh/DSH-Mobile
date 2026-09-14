@@ -1,3 +1,4 @@
+import 'package:dsh_mobile/app/config/bunny_config.dart';
 import 'package:dsh_mobile/app/supabase/media_url.dart';
 import 'package:dsh_mobile/layers/home/domain/entities/hero_slide.dart';
 
@@ -45,7 +46,23 @@ class HeroSlideModel {
 
       final isVideo = slot['mediaType'] == 'video';
       final image = resolveMediaUrl(slot['imageSrc']);
-      final video = resolveMediaUrl(slot['videoSrc']);
+
+      // VIDEO IS A BUNNY ID NOW, NOT A URL
+      //
+      // The dashboard uploads to Bunny Stream and stores the video's id, so
+      // the playable address is built here rather than read from the row —
+      // which is what lets the CDN hostname change without rewriting every
+      // slide. `videoProvider` says which form this slot holds; slides saved
+      // before the move still carry a full URL and keep working.
+      final rawVideo = slot['videoSrc']?.toString().trim() ?? '';
+      final provider = slot['videoProvider']?.toString().trim() ?? '';
+
+      final onBunny = provider == 'bunny' ||
+          (provider.isEmpty && BunnyConfig.looksLikeId(rawVideo));
+
+      final video = onBunny
+          ? BunnyConfig.playbackUrl(rawVideo)
+          : resolveMediaUrl(rawVideo);
 
       final media = isVideo ? video : image;
 
@@ -59,7 +76,14 @@ class HeroSlideModel {
         mediaUrl: media,
         // For a video the still becomes the poster; for an image it is the
         // image itself, which is what the site does.
-        posterUrl: isVideo ? image : media,
+        // Bunny renders a still from the video itself. Preferred over an
+        // empty poster because it is the exact frame playback begins on —
+        // an editor who uploaded no poster still gets no flash of black.
+        posterUrl: isVideo
+            ? (image.isNotEmpty
+                ? image
+                : (onBunny ? BunnyConfig.thumbnailUrl(rawVideo) : ''))
+            : media,
         cardType: slot['cardType']?.toString().trim() ?? '',
         cardTitle: slot['cardTitle']?.toString().trim() ?? '',
         ctaLink: slot['ctaLink']?.toString().trim() ?? '',

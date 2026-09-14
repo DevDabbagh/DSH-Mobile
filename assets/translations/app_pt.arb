@@ -101,12 +101,12 @@
   "homeSupportStory": "Apoie uma História",
   "onboardingNext": "Seguinte",
   "onboardingGetStarted": "Começar",
-  "filmsHeroTitle": "Cinema que",
-  "filmsHeroHighlight": "recusa o silêncio.",
+  "filmsHeroTitle": "Documentário e ficção que ficam perto e",
+  "filmsHeroHighlight": "recusam o apagamento.",
   "filmsExploreDocumentaries": "Explorar documentários",
   "filmsExploreFiction": "Explorar ficção",
   "filmsFeatured": "Filmes em destaque",
-  "filmsLibrary": "Biblioteca",
+  "filmsLibrary": "Biblioteca de filmes",
   "filmsWatchTrailer": "Ver trailer",
   "filmsEmptyTitle": "Ainda não há filmes",
   "filmsEmptyBody": "Novos trabalhos aparecerão aqui à medida que forem publicados.",
@@ -268,5 +268,7 @@
   "browseEvents": "Eventos",
   "browseImpact": "Impacto",
   "browseSupport": "Apoiar",
-  "homeSlowConnection": "Está a demorar. Verifique a ligação e puxe para atualizar."
+  "homeSlowConnection": "Está a demorar. Verifique a ligação e puxe para atualizar.",
+  "filmsHeroBody": "A DSH faz documentário e ficção — do desenvolvimento e produção aos festivais e distribuição. Os filmes não são transmitidos aqui. Esta secção apresenta o trabalho com rigor e contexto, e abre caminhos para exibições, distribuição e imprensa.",
+  "headerSeeMore": "Ver mais"
 }

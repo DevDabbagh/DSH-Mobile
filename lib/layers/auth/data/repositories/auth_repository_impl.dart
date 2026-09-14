@@ -36,14 +36,51 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, Unit>> signInWithProvider(
+    SocialProvider provider,
+  ) async {
+    try {
+      final opened = await _dataSource.signInWithProvider(
+        switch (provider) {
+          SocialProvider.google => sb.OAuthProvider.google,
+          SocialProvider.apple => sb.OAuthProvider.apple,
+        },
+      );
+
+      // `false` means the browser never opened — no Custom Tabs handler, or
+      // the intent was refused. Worth naming, because to the user it looks
+      // like the button simply did nothing.
+      if (!opened) {
+        return const Left(
+          ServerFailure("Couldn't open the sign-in page. Try email instead."),
+        );
+      }
+
+      // Deliberately no user here. The session lands through the auth stream
+      // when the redirect resumes the app — see [signInWithProvider] on the
+      // data source.
+      return const Right(unit);
+    } on sb.AuthException catch (e) {
+      return Left(_authFailure(e));
+    } catch (e) {
+      return Left(SupabaseExceptions.toFailure(e));
+    }
+  }
+
+  @override
   Future<Either<Failure, AppUser?>> register(
     String fullName,
     String email,
-    String password,
-  ) async {
+    String password, {
+    required String locale,
+  }) async {
     try {
-      final res =
-          await _dataSource.signUp(fullName.trim(), email.trim(), password);
+      final res = await _dataSource.signUp(
+        fullName.trim(),
+        email.trim(),
+        password,
+        locale: locale,
+      );
       final authUser = res.user;
 
       if (authUser == null) {
@@ -147,9 +184,24 @@ class AuthRepositoryImpl implements AuthRepository {
     return _dataSource.onAuthStateChange.asyncMap((event) async {
       final authUser = event.session?.user;
       if (authUser == null) return null;
-      // Session-only mapping here: this stream fires on every token refresh,
-      // and a profile query on each one would be a round-trip for data that
-      // rarely changes.
+
+      // A FRESH SIGN-IN IS THE ONE EVENT WORTH A ROUND TRIP
+      //
+      // Email sign-in creates the `public_users` row and claims guest
+      // donations inside `login()`, because that call returns the user. A
+      // Google or Apple sign-in has no such call: the browser redirects back
+      // into the app and the session appears HERE, out of nowhere. Mapping
+      // the session alone would let someone sign in with Google, get into the
+      // app, and have no profile row and no donation history — for as long as
+      // the account existed.
+      //
+      // Only on `signedIn`, though. This stream also fires on every token
+      // refresh, roughly hourly, and a profile query on each of those is a
+      // round trip for data that almost never changes.
+      if (event.event == sb.AuthChangeEvent.signedIn) {
+        return _resolveUser(authUser, ensureProfile: true);
+      }
+
       return AppUserModel.fromAuthUser(authUser);
     });
   }

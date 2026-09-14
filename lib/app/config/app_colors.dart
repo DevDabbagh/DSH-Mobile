@@ -107,6 +107,51 @@ class AppColors {
     end: AlignmentDirectional.centerEnd,
   );
 
+  /// Below this, a run of text is short and gets the tightest blend.
+  static const double _narrowRun = 110;
+
+  /// Above this, the run has room for [primaryGradient] exactly as defined.
+  static const double _wideRun = 260;
+
+  /// [primaryGradient] with its blend narrowed to fit the width it must cross.
+  ///
+  /// WHY THE STOPS MOVE
+  ///
+  /// The gradient holds teal for the first 18% and pink for the last 18%,
+  /// blending across the 64% between. Over "refuses silence." — most of a
+  /// line — that reads exactly as intended: two brand colours with a
+  /// transition.
+  ///
+  /// Over a single short word it does not. "number." is about 110 logical
+  /// pixels, so 18% is twenty pixels of teal, twenty of pink, and seventy of
+  /// the muddy blue-grey between — which is most of what you see, and it is
+  /// why that word looked like it had missed the gradient rather than carried
+  /// it.
+  ///
+  /// The fix is not a different gradient. It is the same two colours with the
+  /// blend compressed as the box narrows: a short run gets 35% pure teal, 30%
+  /// transition, 35% pure pink, so both brand colours are unmistakable and the
+  /// ramp still runs the right way. A wide run keeps the original 18/64/18,
+  /// and anything between is interpolated — so a headline whose runs differ in
+  /// length does not end up with two visibly different treatments in it.
+  ///
+  /// Lives here rather than in one widget because two widgets paint gradient
+  /// text, and the first version of this fix reached only one of them.
+  static LinearGradient brandRamp(double width) {
+    // 0 at the narrow end, 1 at the wide end.
+    final t = ((width - _narrowRun) / (_wideRun - _narrowRun)).clamp(0.0, 1.0);
+
+    // 0.35 → 0.18 as the run widens.
+    final inset = 0.35 + (0.18 - 0.35) * t;
+
+    return LinearGradient(
+      colors: primaryGradient.colors,
+      begin: primaryGradient.begin,
+      end: primaryGradient.end,
+      stops: [inset, 1 - inset],
+    );
+  }
+
   // ── Legacy/Copied MontCamp Aliases ──
 
   /// The page colour.

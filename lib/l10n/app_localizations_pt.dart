@@ -314,10 +314,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get onboardingGetStarted => 'Começar';
 
   @override
-  String get filmsHeroTitle => 'Cinema que';
+  String get filmsHeroTitle => 'Documentário e ficção que ficam perto e';
 
   @override
-  String get filmsHeroHighlight => 'recusa o silêncio.';
+  String get filmsHeroHighlight => 'recusam o apagamento.';
 
   @override
   String get filmsExploreDocumentaries => 'Explorar documentários';
@@ -329,7 +329,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get filmsFeatured => 'Filmes em destaque';
 
   @override
-  String get filmsLibrary => 'Biblioteca';
+  String get filmsLibrary => 'Biblioteca de filmes';
 
   @override
   String get filmsWatchTrailer => 'Ver trailer';
@@ -902,4 +902,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get homeSlowConnection =>
       'Está a demorar. Verifique a ligação e puxe para atualizar.';
+
+  @override
+  String get filmsHeroBody =>
+      'A DSH faz documentário e ficção — do desenvolvimento e produção aos festivais e distribuição. Os filmes não são transmitidos aqui. Esta secção apresenta o trabalho com rigor e contexto, e abre caminhos para exibições, distribuição e imprensa.';
+
+  @override
+  String get headerSeeMore => 'Ver mais';
 }

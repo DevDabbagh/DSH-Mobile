@@ -101,12 +101,12 @@
   "homeSupportStory": "Support a Story",
   "onboardingNext": "Next",
   "onboardingGetStarted": "Get Started",
-  "filmsHeroTitle": "Cinema that",
-  "filmsHeroHighlight": "refuses silence.",
+  "filmsHeroTitle": "Documentary and fiction that stay close and",
+  "filmsHeroHighlight": "refuse erasure.",
   "filmsExploreDocumentaries": "Explore documentaries",
   "filmsExploreFiction": "Explore fiction",
   "filmsFeatured": "Featured Films",
-  "filmsLibrary": "Library",
+  "filmsLibrary": "Films Library",
   "filmsWatchTrailer": "Watch trailer",
   "filmsEmptyTitle": "No films yet",
   "filmsEmptyBody": "New work will appear here as it is published.",
@@ -359,5 +359,7 @@
   "browseEvents": "Events",
   "browseImpact": "Impact",
   "browseSupport": "Support",
-  "homeSlowConnection": "This is taking a while. Check your connection, then pull down to refresh."
+  "homeSlowConnection": "This is taking a while. Check your connection, then pull down to refresh.",
+  "filmsHeroBody": "DSH makes documentary and fiction — from development and production to festivals and distribution. Films are not streamed here. This section presents the work with rigour and context, and opens paths to screenings, distribution, and press.",
+  "headerSeeMore": "See more"
 }

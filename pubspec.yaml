@@ -1,7 +1,7 @@
 name: dsh_mobile
 description: Don't Skip Humanity - Mobile Application
 publish_to: 'none'
-version: 0.1.0+1
+version: 0.2.0+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -29,6 +29,11 @@ dependencies:
 
   # Networking — kept for third-party APIs (Stripe etc.), not for Supabase.
   dio: ^5.4.0
+  # Declared directly, not left transitive: NetLogger implements
+  # `http.BaseClient` to wrap the client Supabase uses, so this package is now
+  # part of our own API surface rather than an implementation detail of the
+  # SDK's. Left undeclared, an SDK upgrade could move it under us.
+  http: ^1.2.0
   retrofit: ">=4.6.0 <4.9.0"
   dio_http_formatter: ^3.0.0
 

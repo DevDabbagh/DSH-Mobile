@@ -313,10 +313,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get onboardingGetStarted => 'ابدأ الآن';
 
   @override
-  String get filmsHeroTitle => 'سينما';
+  String get filmsHeroTitle => 'وثائقي وروائي يبقى قريبًا و';
 
   @override
-  String get filmsHeroHighlight => 'ترفض الصمت.';
+  String get filmsHeroHighlight => 'يرفض المحو.';
 
   @override
   String get filmsExploreDocumentaries => 'استكشف الأفلام الوثائقية';
@@ -328,7 +328,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get filmsFeatured => 'أفلام مختارة';
 
   @override
-  String get filmsLibrary => 'المكتبة';
+  String get filmsLibrary => 'مكتبة الأفلام';
 
   @override
   String get filmsWatchTrailer => 'شاهد الإعلان';
@@ -919,4 +919,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get homeSlowConnection =>
       'الأمر بيطوّل. تحقّق من اتصالك، وبعدين اسحب للأسفل للتحديث.';
+
+  @override
+  String get filmsHeroBody =>
+      'تصنع DSH أفلامًا وثائقية وروائية — من التطوير والإنتاج إلى المهرجانات والتوزيع. الأفلام لا تُعرض هنا. هذا القسم يقدّم العمل بدقّة وسياق، ويفتح مسارات للعروض والتوزيع والصحافة.';
+
+  @override
+  String get headerSeeMore => 'اقرأ المزيد';
 }

@@ -11,6 +11,7 @@ import 'package:dsh_mobile/app/widgets/custom_button.dart';
 import 'package:dsh_mobile/app/widgets/custom_text_field.dart';
 import 'package:dsh_mobile/app/widgets/custom_checkbox.dart';
 import 'package:dsh_mobile/app/widgets/social_button.dart';
+import 'package:dsh_mobile/layers/auth/domain/auth_repository.dart';
 import 'package:dsh_mobile/layers/auth/presentation/controllers/auth_controller.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
@@ -68,13 +69,29 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         _agreedToTerms;
   }
 
+  /// True from the moment "Create account" is pressed until the OTP screen
+  /// has been opened.
+  ///
+  /// The listener below used to send every success to /otp. That was safe
+  /// while this screen could only do one thing; with Google and Apple on it,
+  /// opening the browser also completes successfully — and pushed an OTP
+  /// screen over the top of it, waiting for a code that was never sent.
+  bool _awaitingOtp = false;
+
   void _onRegister() {
     FocusScope.of(context).unfocus();
+    _awaitingOtp = true;
     ref.read(authControllerProvider.notifier).register(
           _nameController.text.trim(),
           _emailController.text.trim(),
           _passwordController.text,
         );
+  }
+
+  void _onProvider(SocialProvider provider) {
+    FocusScope.of(context).unfocus();
+    _awaitingOtp = false;
+    ref.read(authControllerProvider.notifier).signInWithProvider(provider);
   }
 
   @override
@@ -83,13 +100,35 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final authState = ref.watch(authControllerProvider);
     final isLoading = authState is AsyncLoading;
 
+    // A Google or Apple account needs no code to confirm — the provider has
+    // already vouched for the address. Those land as a session instead, so
+    // this screen leaves the same way the sign-in screen does.
+    ref.listen(currentUserProvider, (previous, next) {
+      final arrived = previous?.valueOrNull == null && next.valueOrNull != null;
+      if (!arrived || !context.mounted) return;
+
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/home');
+      }
+    });
+
     ref.listen(authControllerProvider, (previous, next) {
-      if (next is AsyncData) {
-        context.push('/otp'); // Go to verification after register
+      if (next is AsyncData && _awaitingOtp) {
+        _awaitingOtp = false;
+        context.push('/otp');
       } else if (next is AsyncError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error.toString())),
-        );
+        _awaitingOtp = false;
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(next.error.toString()),
+              backgroundColor: AppColors.cardSurface,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
       }
     });
 
@@ -227,13 +266,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             SocialButton(
               text: AppLocalizations.of(context)!.authContinueWithGoogle,
               iconPath: 'assets/icons/ic_google.svg',
-              onPressed: () {},
+              onPressed: () => _onProvider(SocialProvider.google),
             ),
             SizedBox(height: 16.h),
             SocialButton(
               text: AppLocalizations.of(context)!.authContinueWithApple,
               iconPath: 'assets/icons/ic_apple_icon.svg',
-              onPressed: () {},
+              onPressed: () => _onProvider(SocialProvider.apple),
             ),
             SizedBox(height: 30.h),
             Row(

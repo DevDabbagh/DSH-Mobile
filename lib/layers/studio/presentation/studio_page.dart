@@ -13,6 +13,7 @@ import 'package:dsh_mobile/app/widgets/empty_state_widget.dart';
 import 'package:dsh_mobile/app/widgets/error_retry_widget.dart';
 import 'package:dsh_mobile/app/widgets/list_preview.dart';
 import 'package:dsh_mobile/app/widgets/section_app_bar.dart';
+import 'package:dsh_mobile/app/widgets/section_header_body.dart';
 import 'package:dsh_mobile/app/widgets/segmented_headline.dart';
 import 'package:dsh_mobile/l10n/app_localizations.dart';
 import 'package:dsh_mobile/layers/studio/domain/entities/studio_project.dart';
@@ -243,11 +244,21 @@ class _Hero extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // The words come from the dashboard — the same
+                  // `studio_header` row the website reads. Studio's headline
+                  // has three parts, not two: "Stories that / refuse to /
+                  // disappear", with the middle carrying the gradient.
+                  //
+                  // The app's translation is the fallback for a header nobody
+                  // has written, and the only version that exists in Arabic
+                  // and Portuguese until someone writes one.
+                  // Two lines, auto-sized down to fit. The hero is a fixed box
+                  // with a standfirst and two buttons underneath; a third line
+                  // pushes them off the image.
                   SegmentedHeadline(
-                    segments: [
-                      (text: '${l10n.studioHeroTitle} ', highlight: false),
-                      (text: l10n.studioHeroHighlight, highlight: true),
-                    ],
+                    segments: _headlineSegments(header, l10n),
+                    maxLines: 2,
+                    minFontSize: 15,
                     style: TextStyle(
                       color: AppColors.smoke,
                       // Figma 2219:1438 — same treatment as the Films hero.
@@ -257,15 +268,14 @@ class _Hero extends ConsumerWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 10.h),
-                  Text(
-                    l10n.studioHeroBody,
-                    // Figma 2219:1445 — dimmer and larger than it was.
-                    style: TextStyle(
-                      color: AppColors.mediumGrey,
-                      fontSize: 12.sp,
-                      height: 1.5,
-                    ),
+                  SizedBox(height: 12.h),
+                  // One line plus "See more" — the same component the Films
+                  // hero uses, which is the point: Studio used to print the
+                  // paragraph in full while Films truncated its own.
+                  SectionHeaderBody(
+                    header: header,
+                    fallbackBody: l10n.studioHeroBody,
+                    headlineSegments: _headlineSegments(header, l10n),
                   ),
                   SizedBox(height: 14.h),
                   Row(
@@ -283,6 +293,34 @@ class _Hero extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// The headline's runs, from the dashboard or from the app's own translation.
+///
+/// Shared by the hero and the sheet behind "See more" so the two cannot drift
+/// apart — the sheet opens with the words that were tapped.
+///
+/// Studio's headline has three parts where Films has two: "Stories that /
+/// refuse to / disappear", with the middle run carrying the gradient.
+List<({String text, bool highlight})> _headlineSegments(
+  SectionHeader header,
+  AppLocalizations l10n,
+) {
+  if (header.hasTitle) {
+    return [
+      if (header.titleNormal.isNotEmpty)
+        (text: '${header.titleNormal} ', highlight: false),
+      if (header.titleColored.isNotEmpty)
+        (text: header.titleColored, highlight: true),
+      if (header.titleAfter.isNotEmpty)
+        (text: ' ${header.titleAfter}', highlight: false),
+    ];
+  }
+
+  return [
+    (text: '${l10n.studioHeroTitle} ', highlight: false),
+    (text: l10n.studioHeroHighlight, highlight: true),
+  ];
 }
 
 class _OutlinedAction extends StatelessWidget {

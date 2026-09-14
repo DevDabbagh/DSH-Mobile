@@ -134,6 +134,11 @@ class FilterSheet extends StatelessWidget {
   }) {
     return showModalBottomSheet<void>(
       context: context,
+      // The root navigator, so the sheet covers the floating tab bar
+      // instead of sliding up underneath it — the bar is drawn by the
+      // shell, which owns the branch navigator a modal would otherwise
+      // mount inside.
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: builder,

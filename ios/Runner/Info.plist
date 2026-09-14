@@ -58,5 +58,22 @@
 		<array>
 			<string>remote-notification</string>
 		</array>
+		<!-- The scheme Google and Apple redirect back to after sign-in, the
+		     iOS half of the Android intent filter in AndroidManifest.xml.
+		     Must match AuthRemoteDataSource.oauthRedirect and the Redirect
+		     URLs list in Supabase. -->
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>com.devdabbagh.dsh</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.devdabbagh.dsh</string>
+				</array>
+			</dict>
+		</array>
 	</dict>
 </plist>

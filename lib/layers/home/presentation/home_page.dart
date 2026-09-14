@@ -32,40 +32,86 @@ import 'package:dsh_mobile/layers/home/presentation/widgets/home_sections.dart';
 /// dashboard), and each section is a widget that reads its own live content.
 /// Reordering the rails, renaming a heading or hiding a section is a drag in
 /// the dashboard rather than a code change, a build and a store review.
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  /// How long the screen will wait for the content providers before giving up
+  /// on a tidy first paint and showing what it has.
+  ///
+  /// The point of waiting at all is to avoid the flicker: the layout arrives
+  /// from one provider and the content from five more, so rendering the
+  /// instant the layout lands makes every section come up empty, collapse
+  /// itself, then reappear as its own query finishes.
+  ///
+  /// But waiting for ALL of them turns one slow query into a screen that
+  /// never appears — which is a far worse failure than the flicker, and is
+  /// exactly what happened. Six seconds buys the tidy paint on a normal
+  /// connection and costs nothing on a bad one.
+  static const _grace = Duration(seconds: 6);
+
+  Timer? _graceTimer;
+  bool _graceExpired = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _graceTimer = Timer(_grace, () {
+      if (mounted) setState(() => _graceExpired = true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _graceTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _refresh() async {
+    // Everything, not just the layout. Someone pulling to refresh a stuck
+    // Home is retrying the queries that stuck, and refreshing the one
+    // provider that already succeeded helps nobody.
+    ref.invalidate(heroSlidesProvider);
+    ref.invalidate(filmsListProvider);
+    ref.invalidate(studioListProvider);
+    ref.invalidate(academyProgramsProvider);
+    ref.invalidate(impactStatsProvider);
+    ref.invalidate(impactStoriesProvider);
+    await ref.read(homeControllerProvider.notifier).refresh();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final sections = ref.watch(homeControllerProvider);
 
-    // EVERY source, not just the layout.
+    // ONLY the carousel, not every rail.
     //
-    // The layout arrives from one provider and the content from five more,
-    // each resolving whenever its own query happens to return. The screen
-    // used to render the moment the layout landed, so each section came up
-    // empty, collapsed itself, then reappeared as its query finished — rails
-    // popping in, the page jumping under the thumb, and images flashing on
-    // and off. Every widget's `?? const []` was doing its job; the mistake
-    // was showing the screen while those defaults still meant "not yet".
+    // The first version waited for films, studio, academy and the impact
+    // figures as well. Two things were wrong with that:
     //
-    // So the shimmer holds until all six have settled. Watched unconditionally
-    // rather than only for the kinds present: they load in parallel, the
-    // slowest sets the pace either way, and making the set of watched
-    // providers depend on the layout means it changes as the layout changes —
-    // which is how a screen stops updating.
-    final sources = <AsyncValue<Object?>>[
-      ref.watch(heroSlidesProvider),
-      ref.watch(filmsListProvider),
-      ref.watch(studioListProvider),
-      ref.watch(academyProgramsProvider),
-      ref.watch(impactStatsProvider),
-    ];
+    //   · Films, Studio and Academy are other tabs' data. Home shows a few
+    //     of each, but holding the whole screen until all four have answered
+    //     means the slowest query in the app decides when Home appears — and
+    //     if one never answers, Home never appears at all.
+    //   · It is not even what a feed should do. A rail that arrives a moment
+    //     late slides into place below the fold; that is normal, and it is
+    //     nothing like the flicker this was written to stop.
+    //
+    // The flicker was always about the top of the screen: the carousel is the
+    // first thing you see and it occupies 380 pixels, so it collapsing and
+    // reappearing moves everything under it. That is the one worth waiting
+    // for. The rails keep their own placeholders and fill in behind it.
+    //
+    // An error counts as settled — one dead query must not hold the screen.
+    final heroLoading = ref.watch(heroSlidesProvider).isLoading;
 
-    // An error counts as settled. A section whose source failed hides itself,
-    // and one dead query must not hold the whole screen on a shimmer for ever
-    // — which is exactly what a plain `isLoading` check would do.
-    final waiting = sections.isLoading || sources.any((s) => s.isLoading);
+    // The layout is the only hard requirement: without it there is nothing to
+    // lay out. The carousel merely gets the grace period.
+    final waiting = sections.isLoading || (heroLoading && !_graceExpired);
 
     return Scaffold(
       backgroundColor: AppColors.brandBlack,
@@ -75,18 +121,22 @@ class HomePage extends ConsumerWidget {
                 message: sections.error is Failure
                     ? (sections.error as Failure).message
                     : sections.error.toString(),
-                onRetry: () =>
-                    ref.read(homeControllerProvider.notifier).refresh(),
+                onRetry: _refresh,
               )
-            : waiting
-                ? const _HomeLoading()
-                : RefreshIndicator(
-                    color: AppColors.mainBlue,
-                    backgroundColor: AppColors.cardSurface,
-                    onRefresh: () =>
-                        ref.read(homeControllerProvider.notifier).refresh(),
-                    child: _Content(sections: sections.requireValue),
-                  ),
+            : RefreshIndicator(
+                color: AppColors.mainBlue,
+                backgroundColor: AppColors.cardSurface,
+                onRefresh: _refresh,
+                // The indicator wraps BOTH states now.
+                //
+                // It used to wrap only the loaded one, so the slow-connection
+                // hint said "pull down to refresh" over a shimmer that was
+                // not scrollable and had no indicator attached — advice the
+                // screen made impossible to follow.
+                child: waiting
+                    ? const _HomeLoading()
+                    : _Content(sections: sections.requireValue),
+              ),
       ),
     );
   }

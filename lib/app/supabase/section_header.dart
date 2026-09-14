@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:dsh_mobile/app/localization/locale_controller.dart';
+import 'package:dsh_mobile/app/supabase/lang_helper.dart';
 import 'package:dsh_mobile/app/supabase/media_url.dart';
+import 'package:dsh_mobile/app/supabase/supabase_config.dart';
 import 'package:dsh_mobile/app/supabase/supabase_provider.dart';
 import 'package:dsh_mobile/layers/academy/presentation/controllers/academy_controller.dart';
 import 'package:dsh_mobile/layers/films/presentation/controllers/films_controller.dart';
@@ -65,12 +68,34 @@ typedef HeaderImagePools = Map<HeaderSource, List<String>>;
 /// twice at once, which reads as a mistake rather than a pattern.
 const int kMinHeaderTiles = 8;
 
-/// A section header's image settings, as the app needs them.
+/// A section header's settings, as the app needs them.
 ///
-/// Only the images. The headline and description are read from the app's own
-/// translations for now — see the note in [sectionHeader].
+/// The images AND the copy. It used to be only the images: the headline came
+/// from the app's own translations, so an editor who rewrote the Films
+/// headline in the dashboard changed the website and not the phone, with
+/// nothing anywhere to say why. Same row, same keys, same `pickLang` as
+/// `readHeader()` on the website.
 class SectionHeader {
   final HeaderImageMode mode;
+
+  /// The headline, in three parts — the middle one carries the gradient.
+  ///
+  /// Split rather than one string because that is what the colouring needs:
+  /// a single line with a shader over it would tint the plain half too.
+  /// Films uses two parts, Studio and Academy three.
+  final String titleNormal;
+  final String titleColored;
+  final String titleAfter;
+
+  /// The standfirst under the headline. Empty means the screen keeps its own.
+  final String description;
+
+  /// Whether an editor has actually written a headline.
+  ///
+  /// Both halves empty is the untouched state, and the app then falls back to
+  /// its translated default — which is also the only headline that exists in
+  /// Arabic and Portuguese until someone writes one.
+  bool get hasTitle => titleNormal.isNotEmpty || titleColored.isNotEmpty;
 
   /// Which catalogues [HeaderImageMode.content] imports from. A header is not
   /// limited to its own section: an Academy page with film posters behind it
@@ -83,6 +108,10 @@ class SectionHeader {
     this.mode = HeaderImageMode.content,
     this.sources = const [],
     this.tiles = const [],
+    this.titleNormal = '',
+    this.titleColored = '',
+    this.titleAfter = '',
+    this.description = '',
   });
 
   /// The wall to render.
@@ -137,7 +166,18 @@ Future<SectionHeader> sectionHeader(Ref ref, SectionHeaderKey key) async {
 
     final rawSources = value['sources'];
 
+    /* The text fields are JSONB keyed by language, exactly as the website
+       reads them — `readHeader()` there runs the same four through
+       `pickLang`. Resolved here so no screen can forget to. */
+    final locale = ref.watch(localeControllerProvider).languageCode;
+    String text(String field) =>
+        pickLang(value[field], locale, SupabaseConfig.defaultLocale).trim();
+
     return SectionHeader(
+      titleNormal: text('titleNormal'),
+      titleColored: text('titleColored'),
+      titleAfter: text('titleAfter'),
+      description: text('description'),
       mode: HeaderImageMode.fromDb(value['imageMode']?.toString()),
       sources: rawSources is List
           ? rawSources

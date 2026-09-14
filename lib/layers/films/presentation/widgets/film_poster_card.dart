@@ -143,6 +143,8 @@ class _Poster extends StatelessWidget {
     return AppNetworkImage(
       url: url,
       fit: BoxFit.cover,
+      // A poster card is 158 logical pixels wide. The thumbnail is plenty.
+      thumb: true,
     );
   }
 }

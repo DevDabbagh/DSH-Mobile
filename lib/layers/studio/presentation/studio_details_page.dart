@@ -396,45 +396,48 @@ class _Hero extends StatelessWidget {
   }
 }
 
+/// The same disc the Impact screen uses, so the way back is one shape
+/// wherever you are.
+///
+/// It was a "‹ Studio" text link. Two problems with that, and the second is
+/// the one that shows: the hero photograph is an editor's upload and can be
+/// light at the top, where bare white type disappears — and the label named
+/// the screen behind it, so the control changed wording depending on where
+/// the reader had come from.
 class _BackButton extends StatelessWidget {
   const _BackButton();
 
   @override
   Widget build(BuildContext context) {
     return PositionedDirectional(
-      start: 16.w,
+      start: 8.w,
       top: 0,
       child: SafeArea(
         bottom: false,
         child: GestureDetector(
-          onTap: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/studio');
-            }
-          },
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 10.h),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.chevron_left,
-                  size: 16.w,
-                  color: AppColors.smoke,
-                ),
-                SizedBox(width: 5.w),
-                Text(
-                  AppLocalizations.of(context)!.studioTab,
-                  style: TextStyle(
-                    color: AppColors.smoke,
-                    fontSize: 13.sp,
-                    height: 1.5,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+          // Falls back to the listing rather than doing nothing: this screen
+          // is reachable from a link in another page's copy and, eventually,
+          // from a notification on a cold start — both arrive with an empty
+          // stack, where `pop()` is a button that does not respond.
+          onTap: () => context.canPop() ? context.pop() : context.go('/studio'),
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            margin: EdgeInsets.all(8.w),
+            width: 36.w,
+            height: 36.w,
+            decoration: BoxDecoration(
+              color: AppColors.brandBlack.withValues(alpha: 0.55),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.smoke.withValues(alpha: 0.18),
+                width: 0.8,
+              ),
+            ),
+            // Mirrors in Arabic, where back is to the right.
+            child: Icon(
+              Icons.arrow_back,
+              color: AppColors.white,
+              size: 19.w,
             ),
           ),
         ),

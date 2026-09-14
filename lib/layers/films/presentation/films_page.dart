@@ -7,11 +7,13 @@ import 'package:dsh_mobile/app/config/app_colors.dart';
 import 'package:dsh_mobile/app/config/app_dimensions.dart';
 import 'package:dsh_mobile/app/core/errors/failures.dart';
 import 'package:dsh_mobile/app/supabase/section_header.dart';
+import 'package:dsh_mobile/app/widgets/detail_section.dart';
 import 'package:dsh_mobile/app/widgets/drifting_mosaic.dart';
 import 'package:dsh_mobile/app/widgets/empty_state_widget.dart';
 import 'package:dsh_mobile/app/widgets/error_retry_widget.dart';
 import 'package:dsh_mobile/app/widgets/list_preview.dart';
 import 'package:dsh_mobile/app/widgets/section_app_bar.dart';
+import 'package:dsh_mobile/app/widgets/section_header_body.dart';
 import 'package:dsh_mobile/app/widgets/segmented_headline.dart';
 import 'package:dsh_mobile/l10n/app_localizations.dart';
 import 'package:dsh_mobile/layers/films/domain/entities/film.dart';
@@ -94,14 +96,16 @@ class _FilmsContent extends ConsumerWidget {
         // it has scrolled away.
         SectionSliverAppBar(
           title: l10n.filmsTab,
-          expandedHeight: 300.h,
+          // The same wall as Studio. Films was 100 shorter, which made the two
+          // tabs feel like different templates when you swapped between them.
+          expandedHeight: 360.h,
           background: const _Hero(),
           onSearch: () => context.push('/films/search'),
           onFilter: () => context.push('/films/search?filter=1'),
           activeFilters: filter.activeCount,
         ),
         SliverToBoxAdapter(child: _FeaturedRail(films: rail)),
-        SliverToBoxAdapter(child: const _LibraryHeader()),
+        const SliverToBoxAdapter(child: _LibraryHeader()),
 
         if (preview.isEmpty)
           SliverToBoxAdapter(
@@ -146,6 +150,8 @@ class _Hero extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+
     // The wall the dashboard chose. Defaults to the film posters, which is
     // what this always did — the difference is that an editor can now say
     // otherwise, and the website obeys the same setting.
@@ -170,6 +176,10 @@ class _Hero extends ConsumerWidget {
               grayscale: true,
               // The tint IS the darkening — see DriftingMosaic._siteTint.
               opacity: 1,
+              // The website's pink wash over this same hero, entering from
+              // the outer edge. Without it the app's Films hero was the only
+              // grade of this wall on either surface with no colour in it.
+              tint: DriftingMosaic.kFilmsHeroTint,
             ),
           ),
           PositionedDirectional(
@@ -180,7 +190,32 @@ class _Hero extends ConsumerWidget {
               padding: EdgeInsets.symmetric(
                 horizontal: AppDimensions.pagePadding.w,
               ),
-              child: const _Headline(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _Headline(header: header),
+                  SizedBox(height: 12.h),
+                  // The paragraph under the headline.
+                  //
+                  // `SectionHeader` has parsed `description` since it was
+                  // written and this screen simply never drew it — so an
+                  // editor could fill in "Header Description" on the Films
+                  // tab, watch it appear on the website, and find nothing had
+                  // changed in the app. Studio was rendering its copy of the
+                  // same field all along, which is why the gap survived.
+                  SectionHeaderBody(
+                    header: header,
+                    fallbackBody: l10n.filmsHeroBody,
+                    headlineSegments: _headlineSegments(header, l10n),
+                  ),
+                  SizedBox(height: 14.h),
+                  // The website's pair. They set the form filter rather than
+                  // navigating: the listing is on this same screen, so a link
+                  // would be a link to where the reader already is.
+                  const _ExploreButtons(),
+                ],
+              ),
             ),
           ),
         ],
@@ -189,30 +224,175 @@ class _Hero extends ConsumerWidget {
   }
 }
 
-/// "Cinema that **refuses silence.**" — the closing words carry the brand
-/// gradient.
+/// The hero headline — the closing words carry the brand gradient.
+///
+/// **The words come from the dashboard**, the same `films_header` row the
+/// website reads, so an editor rewrites the headline once. The app's own
+/// translation is the fallback for a header nobody has written yet — and it
+/// is also the only version that exists in Arabic and Portuguese until
+/// someone does.
 ///
 /// Uses the shared [SegmentedHeadline] so this reads identically to the
 /// onboarding headlines; a one-off ShaderMask over the whole line would tint
 /// the plain half too.
+/// The headline's runs, from the dashboard or from the app's own translation.
+///
+/// Shared by the hero and the sheet behind "See more" so the two cannot drift
+/// — the sheet exists to show the full text, and a sheet that opened with a
+/// different headline from the one that was tapped would be worse than no
+/// sheet.
+List<({String text, bool highlight})> _headlineSegments(
+  SectionHeader header,
+  AppLocalizations l10n,
+) {
+  if (header.hasTitle) {
+    return [
+      if (header.titleNormal.isNotEmpty)
+        (text: '${header.titleNormal} ', highlight: false),
+      if (header.titleColored.isNotEmpty)
+        (text: header.titleColored, highlight: true),
+    ];
+  }
+
+  return [
+    (text: '${l10n.filmsHeroTitle} ', highlight: false),
+    (text: l10n.filmsHeroHighlight, highlight: true),
+  ];
+}
+
 class _Headline extends StatelessWidget {
-  const _Headline();
+  final SectionHeader header;
+
+  const _Headline({required this.header});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
     return SegmentedHeadline(
-      segments: [
-        (text: '${l10n.filmsHeroTitle} ', highlight: false),
-        (text: l10n.filmsHeroHighlight, highlight: true),
-      ],
+      segments: _headlineSegments(header, l10n),
+      // Two lines, shrinking to fit rather than wrapping to three.
+      //
+      // The hero is a fixed 300-pixel box holding a headline, a line of
+      // description and two buttons. A third line of headline does not push
+      // the buttons down — it pushes them off the image onto the black below,
+      // which is what the last screenshot showed.
+      maxLines: 2,
+      minFontSize: 15,
       style: TextStyle(
         color: AppColors.smoke,
         fontSize: 27.sp,
         height: 1.22,
         letterSpacing: -0.7,
         fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+}
+
+/// "Explore documentaries" · "Explore fiction" — the website's hero pair.
+///
+/// They set the form filter rather than navigating. On the site the listing
+/// is further down the same page and these scroll to it; here the listing is
+/// on this screen already, so a link would lead to where the reader is
+/// standing. Pressing one narrows what is below.
+///
+/// Pressing the active one again clears it — a filter you can turn on and not
+/// off is a trap, and there is no visible "all" control up here to escape to.
+class _ExploreButtons extends ConsumerWidget {
+  const _ExploreButtons();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final active = ref.watch(filmsFilterControllerProvider).form;
+
+    void toggle(FilmForm form) => ref
+        .read(filmsFilterControllerProvider.notifier)
+        .setForm(active == form ? null : form);
+
+    // The website's own labels — "Explore documentaries" / "Explore fiction".
+    //
+    // These were showing the bare form names, "Documentary" and "Fiction",
+    // which are the words the CHIPS use further down the same screen. Two
+    // controls with the same label doing different things is worse than a
+    // longer button: the site's wording says these are a way in, not a filter
+    // you are looking at.
+    return Row(
+      children: [
+        Flexible(
+          child: _ExploreButton(
+            label: l10n.filmsExploreDocumentaries,
+            selected: active == FilmForm.documentary,
+            onTap: () => toggle(FilmForm.documentary),
+          ),
+        ),
+        SizedBox(width: 10.w),
+        Flexible(
+          child: _ExploreButton(
+            label: l10n.filmsExploreFiction,
+            selected: active == FilmForm.fiction,
+            onTap: () => toggle(FilmForm.fiction),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ExploreButton extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ExploreButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        height: 34.h,
+        padding: EdgeInsets.symmetric(horizontal: 14.w),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          // Studio's exact glass pill — a knocked-back fill over the
+          // photographs rather than a solid one, so the wall still reads
+          // through it.
+          //
+          // Films had its own dimmer version of this (0.2 fill, 0.55 text)
+          // and a purple state when a form was chosen, which made the same
+          // control look like two different components across two tabs. The
+          // selected state stays — it is what these buttons DO — but it is
+          // now the brand blue over the same glass, not a separate palette.
+          color: selected
+              ? AppColors.mainPurple.withValues(alpha: 0.30)
+              : AppColors.darkBackground.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(3.r),
+          border: Border.all(
+            color: selected
+                ? AppColors.mainPurple.withValues(alpha: 0.70)
+                : AppColors.smoke.withValues(alpha: 0.20),
+            width: 0.6,
+          ),
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: AppColors.smoke,
+            fontSize: 12.sp,
+            height: 1.5,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
     );
   }
@@ -239,14 +419,16 @@ class _FeaturedRail extends StatelessWidget {
           // gone with the "1 film" under Library, and for the same reason: on
           // a young catalogue it announced how little there was, and it was
           // the first thing the eye landed on.
+          //
+          // Studio's eyebrow, exactly — upper case, 11sp, letter-spaced, and
+          // knocked back to 35% white. It was 14sp semibold solid white here,
+          // the same weight as "Library" underneath it, so a rail label and a
+          // section heading read as two headings of equal rank. This one is a
+          // caption over the row it introduces; the white heading below is
+          // the one that ranks.
           child: Text(
-            AppLocalizations.of(context)!.filmsFeatured,
-            style: TextStyle(
-              color: AppColors.smoke,
-              fontSize: 14.sp,
-              height: 1.5,
-              fontWeight: FontWeight.w600,
-            ),
+            AppLocalizations.of(context)!.filmsFeatured.toUpperCase(),
+            style: DetailSection.studioLabel(),
           ),
         ),
         SizedBox(height: 14.h),
@@ -341,7 +523,7 @@ class _FilmsSkeleton extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Block(height: 300.h, width: double.infinity, radius: 0),
+          _Block(height: 400.h, width: double.infinity, radius: 0),
           SizedBox(height: 24.h),
           Padding(
             padding: EdgeInsets.symmetric(

@@ -136,6 +136,8 @@ class _Thumb extends StatelessWidget {
           AppNetworkImage(
             url: url,
             fit: BoxFit.cover,
+            // A still at list-row size.
+            thumb: true,
           ),
         // Feathers the still into the card body so there is no hard vertical
         // seam between image and text.

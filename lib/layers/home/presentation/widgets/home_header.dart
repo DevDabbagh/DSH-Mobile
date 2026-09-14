@@ -91,7 +91,17 @@ class _HeaderAvatar extends StatelessWidget {
     final signedIn = user != null;
 
     return GestureDetector(
-      onTap: () => goToRoute(context, signedIn ? '/profile' : '/login'),
+      // Always the Profile tab, signed in or not.
+      //
+      // A guest used to be sent straight to `/login`, which skipped the one
+      // screen built to explain what an account is for — Profile already has
+      // a guest state, with the sign-in prompt inside it. Jumping past it made
+      // the avatar a login button wearing a person's face, and it put a
+      // full-screen form in front of anyone who tapped it out of curiosity.
+      //
+      // It also broke the tab bar: `/login` is outside the shell, so the bar
+      // vanished and there was no way back except the system gesture.
+      onTap: () => goToRoute(context, '/profile'),
       behavior: HitTestBehavior.opaque,
       child: Container(
         width: 32.w,
@@ -113,6 +123,8 @@ class _HeaderAvatar extends StatelessWidget {
                     url: user!.avatarUrl!,
                     fit: BoxFit.cover,
                     fallback: _Initials(user: user!),
+                    // An avatar is ~36px. It is also on every screen.
+                    thumb: true,
                   )
                 : _Initials(user: user!),
       ),
@@ -153,7 +165,14 @@ class HomeShimmer extends StatelessWidget {
       baseColor: Colors.grey[900]!,
       highlightColor: Colors.grey[800]!,
       child: SingleChildScrollView(
-        physics: const NeverScrollableScrollPhysics(),
+        // Scrollable even though there is nothing to scroll to.
+        //
+        // A `RefreshIndicator` only fires when its child reports an overscroll,
+        // and `NeverScrollableScrollPhysics` never does. So the shimmer was
+        // telling people to pull down to refresh while being the one widget on
+        // the screen that could not be pulled — which is the exact moment
+        // refreshing matters most.
+        physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

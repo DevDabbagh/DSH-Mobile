@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:dsh_mobile/app/core/errors/failures.dart';
+import 'package:dsh_mobile/app/localization/locale_controller.dart';
 import 'package:dsh_mobile/layers/auth/data/repositories/auth_repository_impl.dart';
 import 'package:dsh_mobile/layers/auth/domain/auth_repository.dart';
 import 'package:dsh_mobile/layers/auth/domain/entities/app_user.dart';
@@ -111,12 +112,36 @@ class AuthController extends _$AuthController {
     state = const AsyncData(null);
   }
 
+  /// Opens Google or Apple.
+  ///
+  /// Ends in [AsyncData] once the browser is open — which is NOT a sign-in.
+  /// The session arrives later through the auth stream and the router guard
+  /// picks it up, so the screens must not treat this as "you are in": doing
+  /// so navigates away from the sign-in screen while the user is still
+  /// choosing an account, and leaves them nowhere to come back to if they
+  /// cancel.
+  Future<void> signInWithProvider(SocialProvider provider) async {
+    state = const AsyncLoading();
+
+    final result =
+        await ref.read(authRepositoryProvider).signInWithProvider(provider);
+    if (_failed(result)) return;
+
+    state = const AsyncData(null);
+  }
+
   Future<void> register(String fullName, String email, String password) async {
     state = const AsyncLoading();
 
-    final result = await ref
-        .read(authRepositoryProvider)
-        .register(fullName, email, password);
+    final result = await ref.read(authRepositoryProvider).register(
+          fullName,
+          email,
+          password,
+          // The language the app is running in right now, taken at the moment
+          // of sign-up. It decides what language the confirmation email is
+          // written in — see AuthRemoteDataSource.signUp.
+          locale: ref.read(localeControllerProvider).languageCode,
+        );
     if (_failed(result)) return;
 
     // With email confirmation on, the account exists but isn't usable yet.

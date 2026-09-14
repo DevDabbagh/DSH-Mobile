@@ -145,6 +145,7 @@ class _Thumb extends StatelessWidget {
     return AppNetworkImage(
       url: url,
       fit: BoxFit.cover,
+      thumb: true,
     );
   }
 }

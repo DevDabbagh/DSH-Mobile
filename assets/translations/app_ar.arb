@@ -101,12 +101,12 @@
   "homeSupportStory": "ادعم قصة",
   "onboardingNext": "التالي",
   "onboardingGetStarted": "ابدأ الآن",
-  "filmsHeroTitle": "سينما",
-  "filmsHeroHighlight": "ترفض الصمت.",
+  "filmsHeroTitle": "وثائقي وروائي يبقى قريبًا و",
+  "filmsHeroHighlight": "يرفض المحو.",
   "filmsExploreDocumentaries": "استكشف الأفلام الوثائقية",
   "filmsExploreFiction": "استكشف الأفلام الروائية",
   "filmsFeatured": "أفلام مختارة",
-  "filmsLibrary": "المكتبة",
+  "filmsLibrary": "مكتبة الأفلام",
   "filmsWatchTrailer": "شاهد الإعلان",
   "filmsEmptyTitle": "لا توجد أفلام بعد",
   "filmsEmptyBody": "ستظهر الأعمال الجديدة هنا فور نشرها.",
@@ -268,5 +268,7 @@
   "browseEvents": "فعاليات",
   "browseImpact": "الأثر",
   "browseSupport": "ادعمنا",
-  "homeSlowConnection": "الأمر بيطوّل. تحقّق من اتصالك، وبعدين اسحب للأسفل للتحديث."
+  "homeSlowConnection": "الأمر بيطوّل. تحقّق من اتصالك، وبعدين اسحب للأسفل للتحديث.",
+  "filmsHeroBody": "تصنع DSH أفلامًا وثائقية وروائية — من التطوير والإنتاج إلى المهرجانات والتوزيع. الأفلام لا تُعرض هنا. هذا القسم يقدّم العمل بدقّة وسياق، ويفتح مسارات للعروض والتوزيع والصحافة.",
+  "headerSeeMore": "اقرأ المزيد"
 }
