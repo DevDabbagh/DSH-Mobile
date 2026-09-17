@@ -147,6 +147,28 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, Unit>> resendOtp({
+    required String email,
+    required OtpPurpose purpose,
+  }) async {
+    try {
+      if (purpose == OtpPurpose.signup) {
+        await _dataSource.resendSignupCode(email.trim());
+      } else {
+        // Recovery has no resend endpoint. Asking for the reset email again
+        // issues a fresh code against the same address, which is what the
+        // user means by "send it again".
+        await _dataSource.sendPasswordResetEmail(email.trim());
+      }
+      return const Right(unit);
+    } on sb.AuthException catch (e) {
+      return Left(_authFailure(e));
+    } catch (e) {
+      return Left(SupabaseExceptions.toFailure(e));
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> updatePassword(String newPassword) async {
     try {
       await _dataSource.updatePassword(newPassword);

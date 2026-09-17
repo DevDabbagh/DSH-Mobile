@@ -52,6 +52,17 @@ abstract class AuthRepository {
   /// users.
   Future<Either<Failure, Unit>> sendPasswordResetEmail(String email);
 
+  /// Sends the code again for whichever flow the user is in.
+  ///
+  /// Supabase rate-limits this server-side and answers with "For security
+  /// purposes, you can only request this after N seconds" — which the OTP
+  /// screen surfaces rather than hides, because a user who has been told to
+  /// wait 43 seconds stops tapping.
+  Future<Either<Failure, Unit>> resendOtp({
+    required String email,
+    required OtpPurpose purpose,
+  });
+
   /// Sets a new password for the currently authenticated session.
   Future<Either<Failure, Unit>> updatePassword(String newPassword);
 

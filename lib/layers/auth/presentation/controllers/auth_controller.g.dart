@@ -48,7 +48,7 @@ final pendingVerificationStateProvider =
 );
 
 typedef _$PendingVerificationState = Notifier<PendingVerification?>;
-String _$authControllerHash() => r'7a1854f8316806d117cb479f8219c993d993b217';
+String _$authControllerHash() => r'b05424289311111c9889f3d588063d3551cd1669';
 
 /// Drives the auth screens.
 ///

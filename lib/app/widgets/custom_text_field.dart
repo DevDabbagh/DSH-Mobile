@@ -17,6 +17,16 @@ class CustomTextField extends StatefulWidget {
   final void Function(String)? onFieldSubmitted;
   final List<TextInputFormatter>? inputFormatters;
 
+  /// Lets the screen above move focus on "next" — the sign-in and sign-up
+  /// forms chain their fields, and without a handle on the next field the
+  /// keyboard's next key simply dismissed the keyboard.
+  final FocusNode? focusNode;
+
+  /// iOS and Android password managers only offer to fill a field that says
+  /// what it holds. Without this, a saved DSH password is invisible to the
+  /// keychain and the user types it by hand every time.
+  final Iterable<String>? autofillHints;
+
   const CustomTextField({
     super.key,
     required this.hintText,
@@ -30,6 +40,8 @@ class CustomTextField extends StatefulWidget {
     this.onChanged,
     this.onFieldSubmitted,
     this.inputFormatters,
+    this.focusNode,
+    this.autofillHints,
   });
 
   @override
@@ -45,6 +57,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
     return TextFormField(
       controller: widget.controller,
+      focusNode: widget.focusNode,
+      autofillHints: widget.autofillHints,
       obscureText: widget.isPassword ? _obscureText : false,
       validator: widget.validator,
       keyboardType: widget.keyboardType,

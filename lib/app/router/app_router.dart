@@ -189,7 +189,14 @@ GoRouter appRouter(Ref ref) {
       // be showing would leave the bar highlighting something unrelated.
       GoRoute(
         path: '/notifications',
-        builder: (context, state) => const NotificationsPage(),
+        // `?tab=newsletter` and `?issue=<uuid>` are what the push a newsletter
+        // send fires carries. Query parameters rather than a second route so
+        // an older build — one that predates the Newsletter tab — still opens
+        // the inbox instead of failing to match a path it has never heard of.
+        builder: (context, state) => NotificationsPage(
+          initialTab: state.uri.queryParameters['tab'] ?? '',
+          openIssueId: state.uri.queryParameters['issue'] ?? '',
+        ),
       ),
 
       // ── Search ────────────────────────────────────────────────────────

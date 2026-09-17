@@ -98,7 +98,7 @@ class _FilmsContent extends ConsumerWidget {
           title: l10n.filmsTab,
           // The same wall as Studio. Films was 100 shorter, which made the two
           // tabs feel like different templates when you swapped between them.
-          expandedHeight: 360.h,
+          expandedHeight: 400.h,
           background: const _Hero(),
           onSearch: () => context.push('/films/search'),
           onFilter: () => context.push('/films/search?filter=1'),
@@ -162,13 +162,17 @@ class _Hero extends ConsumerWidget {
     final images = header.resolve(ref.watch(headerImagePoolsProvider));
 
     return SizedBox(
-      height: 300.h,
+      height: 330.h,
       child: Stack(
         children: [
           Positioned.fill(
             child: DriftingMosaic(
               imageUrls: images,
-              height: 300.h,
+              height: 330.h,
+              // Two rows, matching Studio. Three rows over this height gave
+              // 110×110 tiles — square, which crops a 2:3 poster through the
+              // middle. Two gives 110×165, which is the shape a poster is.
+              rowCount: 2,
               // Grey, like Impact and like the onboarding wall. A dozen
               // posters at a dozen different grades read as a contact sheet
               // in colour; desaturating is what makes a mixed set cohere
@@ -176,6 +180,17 @@ class _Hero extends ConsumerWidget {
               grayscale: true,
               // The tint IS the darkening — see DriftingMosaic._siteTint.
               opacity: 1,
+              // THE ONE THING STILL SET DIFFERENTLY FROM STUDIO
+              //
+              // Everything above now matches Studio exactly — same height,
+              // same rows, same grade. The fade does not, and it is about the
+              // pictures rather than the geometry: Studio's wall is grey
+              // faces, this one is posters and stills, which are much
+              // lighter. The default fade's last step goes from 85% black to
+              // 100% in one move; a grey face is already invisible by 85%, a
+              // bright poster is not, so on this wall alone that step showed
+              // as a hard line. See DriftingMosaic.kDeepScrim.
+              scrimGradient: DriftingMosaic.kDeepScrim,
               // The website's pink wash over this same hero, entering from
               // the outer edge. Without it the app's Films hero was the only
               // grade of this wall on either surface with no colour in it.

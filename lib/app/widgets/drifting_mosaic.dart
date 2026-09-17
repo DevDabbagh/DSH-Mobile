@@ -34,6 +34,12 @@ class DriftingMosaic extends StatefulWidget {
   /// own scrim over the top, for the same reason.
   final bool scrim;
 
+  /// Replaces the shape of that fade. Null means [kDefaultScrim].
+  ///
+  /// Exists because how long the fade needs to be depends on how many rows
+  /// are above it — see [kDeepScrim].
+  final Gradient? scrimGradient;
+
   /// Applies the website's tile treatment — see [_siteTint].
   ///
   /// Not just desaturation: grayscale, then the same brightness and contrast
@@ -59,9 +65,67 @@ class DriftingMosaic extends StatefulWidget {
     this.secondsPerCycle = 60,
     this.opacity = 0.30,
     this.scrim = true,
+    this.scrimGradient,
     this.grayscale = false,
     this.tint,
   });
+
+  /// Fades the mosaic into the page: dark at the very top so the header
+  /// reads, clear through the middle, solid at the bottom so the headline
+  /// sits on flat colour.
+  ///
+  /// Two rows is what this was drawn for. The last row then spans the whole
+  /// second half of the wall, so the ramp from clear to solid runs across the
+  /// entire row and the bottom edge of the tiles is already black by the time
+  /// it arrives.
+  static const LinearGradient kDefaultScrim = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Color(0x660D0D0D),
+      Color(0x000D0D0D),
+      Color(0x000D0D0D),
+      Color(0xD90D0D0D),
+      AppColors.deepBackground,
+    ],
+    stops: [0.0, 0.30, 0.50, 0.75, 1.0],
+  );
+
+  /// The same fade, stretched and stepped, for a wall three rows deep.
+  ///
+  /// WHY THREE ROWS NEEDED ITS OWN
+  ///
+  /// [kDefaultScrim] goes from clear at 50% to solid at 100%, in two steps.
+  /// Over two rows that is a whole row's worth of distance and it reads as a
+  /// shadow. Over three rows the last row does not begin until 67%, by which
+  /// point the fade is already most of the way down — so the row appears at
+  /// near-full darkness, and the top edge of its tiles lands as a visible
+  /// seam rather than as something emerging out of shadow.
+  ///
+  /// The second half of the problem is the pictures. Alpha is linear and
+  /// perception is not: a white tile under 85% black is still plainly white,
+  /// and under 100% it is gone. That single step — the 0.75 → 1.0 jump — is
+  /// the hard line, and it only shows on light imagery. Studio's wall is
+  /// grey faces and hides it; Films' posters and stills do not.
+  ///
+  /// So this fades later (leaving more of the wall lit) and in six steps
+  /// instead of two, none of them a jump bigger than 0x40. Same start, same
+  /// finish, no edge anywhere in between.
+  static const LinearGradient kDeepScrim = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Color(0x660D0D0D),
+      Color(0x000D0D0D),
+      Color(0x000D0D0D),
+      Color(0x400D0D0D),
+      Color(0x800D0D0D),
+      Color(0xB80D0D0D),
+      Color(0xE00D0D0D),
+      AppColors.deepBackground,
+    ],
+    stops: [0.0, 0.26, 0.44, 0.58, 0.70, 0.82, 0.91, 1.0],
+  );
 
   /// The pink wash over the Films hero, copied from the website.
   ///
@@ -202,24 +266,12 @@ class _DriftingMosaicState extends State<DriftingMosaic>
                 decoration: BoxDecoration(gradient: widget.tint),
               ),
 
-            // Fades the mosaic into the page: dark at the very top so the
-            // header reads, clear through the middle, solid at the bottom so
-            // the headline sits on flat colour.
+            // Fades the mosaic into the page — see kDefaultScrim.
             if (widget.scrim)
-              const DecoratedBox(
+              DecoratedBox(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0x660D0D0D),
-                      Color(0x000D0D0D),
-                      Color(0x000D0D0D),
-                      Color(0xD90D0D0D),
-                      AppColors.deepBackground,
-                    ],
-                    stops: [0.0, 0.30, 0.50, 0.75, 1.0],
-                  ),
+                  gradient:
+                      widget.scrimGradient ?? DriftingMosaic.kDefaultScrim,
                 ),
               ),
           ],

@@ -202,6 +202,28 @@ class AuthController extends _$AuthController {
     state = const AsyncData(null);
   }
 
+  /// Sends the code again. Returns null on success, or the message to show.
+  ///
+  /// DELIBERATELY NOT ROUTED THROUGH [state]
+  ///
+  /// Every screen in this flow navigates on [AsyncData] — that is how "code
+  /// accepted" moves you forward. A resend that reported success the same way
+  /// would be indistinguishable from a verification, and tapping "Resend"
+  /// would skip the user past the screen they are still waiting on a code
+  /// for. So this one call answers its caller directly and leaves the shared
+  /// state alone.
+  Future<String?> resendOtp() async {
+    final pending = ref.read(pendingVerificationStateProvider);
+    if (pending == null) return 'Start again from sign up or password reset.';
+
+    final result = await ref.read(authRepositoryProvider).resendOtp(
+          email: pending.email,
+          purpose: pending.purpose,
+        );
+
+    return result.fold((failure) => failure.message, (_) => null);
+  }
+
   Future<void> resetPassword(String newPassword) async {
     state = const AsyncLoading();
 

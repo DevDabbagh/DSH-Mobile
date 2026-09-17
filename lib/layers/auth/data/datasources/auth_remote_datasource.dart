@@ -80,6 +80,19 @@ class AuthRemoteDataSource {
     return _client.auth.resetPasswordForEmail(email);
   }
 
+  /// Sends the sign-up confirmation code again.
+  ///
+  /// A different endpoint from [signUp], and it has to be: calling signUp a
+  /// second time with the same address returns a fake user with no identities
+  /// rather than an error, so an app that "resends" that way looks like it
+  /// worked and delivers nothing.
+  ///
+  /// Recovery has no `resend` — for that flow the caller asks for a new reset
+  /// email instead, which is the same thing by a different name.
+  Future<void> resendSignupCode(String email) {
+    return _client.auth.resend(type: OtpType.signup, email: email);
+  }
+
   Future<UserResponse> updatePassword(String newPassword) {
     return _client.auth.updateUser(UserAttributes(password: newPassword));
   }

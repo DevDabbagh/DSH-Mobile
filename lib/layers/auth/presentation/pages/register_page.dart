@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:dsh_mobile/l10n/app_localizations.dart';
 
 import 'package:dsh_mobile/app/config/app_colors.dart';
-import 'package:dsh_mobile/app/config/app_dimensions.dart';
 import 'package:dsh_mobile/app/widgets/custom_button.dart';
 import 'package:dsh_mobile/app/widgets/custom_text_field.dart';
 import 'package:dsh_mobile/app/widgets/custom_checkbox.dart';
-import 'package:dsh_mobile/app/widgets/social_button.dart';
 import 'package:dsh_mobile/layers/auth/domain/auth_repository.dart';
 import 'package:dsh_mobile/layers/auth/presentation/controllers/auth_controller.dart';
+import 'package:dsh_mobile/layers/auth/presentation/widgets/auth_scaffold.dart';
+import 'package:dsh_mobile/layers/auth/presentation/widgets/auth_social_row.dart';
+import 'package:dsh_mobile/layers/auth/presentation/widgets/password_strength_bar.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -27,8 +27,18 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+  final _confirmFocus = FocusNode();
+
   bool _agreedToTerms = false;
   final _isValid = ValueNotifier<bool>(false);
+
+  /// Set once the user has left the confirm field or typed enough to have an
+  /// opinion. Without it, "Passwords don't match" appears on the first
+  /// keystroke of a field the user is halfway through filling in — which is
+  /// technically true and reads as being nagged.
+  final _showMismatch = ValueNotifier<bool>(false);
 
   @override
   void initState() {
@@ -37,6 +47,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     _emailController.addListener(_validateForm);
     _passwordController.addListener(_validateForm);
     _confirmPasswordController.addListener(_validateForm);
+    _confirmFocus.addListener(() {
+      if (!_confirmFocus.hasFocus &&
+          _confirmPasswordController.text.isNotEmpty) {
+        _showMismatch.value = true;
+      }
+    });
   }
 
   @override
@@ -45,7 +61,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
+    _confirmFocus.dispose();
     _isValid.dispose();
+    _showMismatch.dispose();
     super.dispose();
   }
 
@@ -61,6 +81,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final isEmailValid = emailRegex.hasMatch(email);
     final isPasswordValid = password.length >= 8;
     final isConfirmPasswordValid = password == confirmPassword;
+
+    if (isConfirmPasswordValid) _showMismatch.value = false;
 
     _isValid.value = isNameValid &&
         isEmailValid &&
@@ -97,6 +119,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authControllerProvider);
     final isLoading = authState is AsyncLoading;
 
@@ -115,90 +138,102 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     });
 
     ref.listen(authControllerProvider, (previous, next) {
+      if (!context.mounted) return;
       if (next is AsyncData && _awaitingOtp) {
         _awaitingOtp = false;
         context.push('/otp');
       } else if (next is AsyncError) {
         _awaitingOtp = false;
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(
-              content: Text(next.error.toString()),
-              backgroundColor: AppColors.cardSurface,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+        showAuthError(context, next.error);
       }
     });
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-          onPressed: () => context.pop(),
+    return AuthScaffold(
+      // Six fields and a keyboard is never a short screen. Centring it would
+      // make the top jump the moment the keyboard animates in.
+      alignTop: true,
+      children: [
+        SizedBox(height: 8.h),
+        AuthHeader(
+          title: l10n.authJoinUs,
+          subtitle: l10n.authSignInToContinue,
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: AppDimensions.pagePadding.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        SizedBox(height: 26.h),
+        AuthCard(
           children: [
-            SizedBox(height: 10.h),
-            Center(
-              child: SvgPicture.asset(
-                'assets/icons/ic_logo.svg',
-                width: 180.w,
-                fit: BoxFit.contain,
-              ),
-            ),
-            SizedBox(height: 20.h),
-            Text(
-              AppLocalizations.of(context)!.authJoinUs,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.displayMedium,
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              AppLocalizations.of(context)!.authSignInToContinue,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            SizedBox(height: 32.h),
             CustomTextField(
               controller: _nameController,
-              hintText: AppLocalizations.of(context)!.authFullName,
+              hintText: l10n.authFullName,
               prefixIcon: Icons.person_outline,
               textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.name],
+              onFieldSubmitted: (_) => _emailFocus.requestFocus(),
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: 14.h),
             CustomTextField(
               controller: _emailController,
-              hintText: AppLocalizations.of(context)!.authEmailAddress,
+              focusNode: _emailFocus,
+              hintText: l10n.authEmailAddress,
               prefixIconPath: 'assets/icons/ic_email.svg',
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.newUsername],
+              onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: 14.h),
             CustomTextField(
               controller: _passwordController,
-              hintText: AppLocalizations.of(context)!.authPassword,
+              focusNode: _passwordFocus,
+              hintText: l10n.authPassword,
               prefixIconPath: 'assets/icons/ic_password.svg',
               isPassword: true,
               textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.newPassword],
+              onFieldSubmitted: (_) => _confirmFocus.requestFocus(),
             ),
-            SizedBox(height: 16.h),
+
+            // Immediately under the field it describes, so "at least 8
+            // characters" is answered where the question is asked rather
+            // than by a rejection after the button is pressed.
+            PasswordStrengthBar(controller: _passwordController),
+
+            SizedBox(height: 14.h),
             CustomTextField(
               controller: _confirmPasswordController,
-              hintText: AppLocalizations.of(context)!.authConfirmPassword,
+              focusNode: _confirmFocus,
+              hintText: l10n.authConfirmPassword,
               prefixIconPath: 'assets/icons/ic_password.svg',
               isPassword: true,
               textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.newPassword],
+              onFieldSubmitted: (_) {
+                _showMismatch.value = true;
+                if (_isValid.value) _onRegister();
+              },
             ),
-            SizedBox(height: 16.h),
+            ValueListenableBuilder<bool>(
+              valueListenable: _showMismatch,
+              builder: (context, show, child) {
+                final mismatch = show &&
+                    _confirmPasswordController.text != _passwordController.text;
+                if (!mismatch) return SizedBox(height: 16.h);
+                return Padding(
+                  padding: EdgeInsets.only(top: 8.h, bottom: 8.h),
+                  child: Row(
+                    children: [
+                      Icon(Icons.error_outline,
+                          size: 14.sp, color: AppColors.errorMain),
+                      SizedBox(width: 6.w),
+                      Text(
+                        "Passwords don't match",
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: AppColors.errorMain),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
             CustomCheckbox(
               value: _agreedToTerms,
               onChanged: (val) {
@@ -209,14 +244,15 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               },
               label: RichText(
                 text: TextSpan(
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.60),
+                    height: 1.5,
                   ),
                   children: [
                     const TextSpan(text: 'I agree to the '),
                     TextSpan(
                       text: 'Terms',
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: AppColors.white,
                         fontWeight: FontWeight.bold,
                       ),
@@ -224,7 +260,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     const TextSpan(text: ' and '),
                     TextSpan(
                       text: 'Privacy Policy',
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: AppColors.white,
                         fontWeight: FontWeight.bold,
                       ),
@@ -233,12 +269,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 ),
               ),
             ),
-            SizedBox(height: 24.h),
+            SizedBox(height: 20.h),
             ValueListenableBuilder<bool>(
               valueListenable: _isValid,
               builder: (context, isValid, child) {
                 return CustomButton(
-                  text: AppLocalizations.of(context)!.authCreateAccount,
+                  text: l10n.authCreateAccount,
                   type: isValid
                       ? CustomButtonType.gradientFill
                       : CustomButtonType.primaryGrey,
@@ -247,58 +283,26 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 );
               },
             ),
-            SizedBox(height: 32.h),
-            Row(
-              children: [
-                const Expanded(child: Divider(color: AppColors.border)),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: Text(
-                    AppLocalizations.of(context)!.authOr,
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(color: AppColors.textMuted),
-                  ),
-                ),
-                const Expanded(child: Divider(color: AppColors.border)),
-              ],
-            ),
-            SizedBox(height: 32.h),
-            SocialButton(
-              text: AppLocalizations.of(context)!.authContinueWithGoogle,
-              iconPath: 'assets/icons/ic_google.svg',
-              onPressed: () => _onProvider(SocialProvider.google),
-            ),
-            SizedBox(height: 16.h),
-            SocialButton(
-              text: AppLocalizations.of(context)!.authContinueWithApple,
-              iconPath: 'assets/icons/ic_apple_icon.svg',
-              onPressed: () => _onProvider(SocialProvider.apple),
-            ),
-            SizedBox(height: 30.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.authAlreadyHaveAccount,
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: AppColors.textSecondary),
-                ),
-                GestureDetector(
-                  onTap: () => context.pop(),
-                  child: Text(
-                    AppLocalizations.of(context)!.authSignIn,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 40.h),
           ],
         ),
-      ),
+        SizedBox(height: 24.h),
+        AuthDivider(label: l10n.authOr),
+        SizedBox(height: 20.h),
+        AuthSocialRow(onProvider: _onProvider, enabled: !isLoading),
+        SizedBox(height: 26.h),
+        AuthFooterLink(
+          question: l10n.authAlreadyHaveAccount,
+          action: l10n.authSignIn,
+          onTap: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/login');
+            }
+          },
+        ),
+        SizedBox(height: 16.h),
+      ],
     );
   }
 }

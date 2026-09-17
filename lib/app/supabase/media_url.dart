@@ -65,7 +65,23 @@ List<String> resolveMediaUrls(Iterable<String> values) =>
 String thumbMediaUrl(String fullUrl) {
   final url = fullUrl.trim();
   if (url.isEmpty) return '';
-  if (!url.contains('/storage/v1/object/public/')) return '';
+
+  // Two homes, not one.
+  //
+  // This used to test only for the Supabase Storage path, which was the only
+  // place uploads went. Uploads go to Bunny Storage now, and a Bunny URL
+  // carries no `/storage/v1/object/public/` — so this returned empty for every
+  // newly uploaded image and the app quietly fell back to the full file.
+  //
+  // Nothing would have broken, which is the problem: the mosaic would have
+  // gone back to pulling roughly ten times the bytes it displays, with no
+  // error anywhere to say so.
+  final isOurs = url.contains('/storage/v1/object/public/') ||
+      url.contains('.b-cdn.net/') ||
+      (BunnyConfig.imageCdnHost.isNotEmpty &&
+          url.contains(BunnyConfig.imageCdnHost));
+
+  if (!isOurs) return '';
 
   // Query strings would end up inside the filename.
   final cut = url.indexOf('?');

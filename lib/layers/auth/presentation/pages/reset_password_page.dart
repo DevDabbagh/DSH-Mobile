@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:dsh_mobile/l10n/app_localizations.dart';
 
 import 'package:dsh_mobile/app/config/app_colors.dart';
-import 'package:dsh_mobile/app/config/app_dimensions.dart';
 import 'package:dsh_mobile/app/widgets/custom_button.dart';
 import 'package:dsh_mobile/app/widgets/custom_text_field.dart';
 import 'package:dsh_mobile/layers/auth/presentation/controllers/auth_controller.dart';
+import 'package:dsh_mobile/layers/auth/presentation/widgets/auth_scaffold.dart';
+import 'package:dsh_mobile/layers/auth/presentation/widgets/password_strength_bar.dart';
 
 class ResetPasswordPage extends ConsumerStatefulWidget {
   const ResetPasswordPage({super.key});
@@ -21,20 +21,32 @@ class ResetPasswordPage extends ConsumerStatefulWidget {
 class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _confirmFocus = FocusNode();
   final _isValid = ValueNotifier<bool>(false);
+  final _showMismatch = ValueNotifier<bool>(false);
+
+  bool _saving = false;
 
   @override
   void initState() {
     super.initState();
     _passwordController.addListener(_validateForm);
     _confirmPasswordController.addListener(_validateForm);
+    _confirmFocus.addListener(() {
+      if (!_confirmFocus.hasFocus &&
+          _confirmPasswordController.text.isNotEmpty) {
+        _showMismatch.value = true;
+      }
+    });
   }
 
   @override
   void dispose() {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _confirmFocus.dispose();
     _isValid.dispose();
+    _showMismatch.dispose();
     super.dispose();
   }
 
@@ -45,11 +57,14 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
     final isPasswordValid = password.length >= 8;
     final isConfirmPasswordValid = password == confirmPassword;
 
+    if (isConfirmPasswordValid) _showMismatch.value = false;
+
     _isValid.value = isPasswordValid && isConfirmPasswordValid;
   }
 
   void _onResetPassword() {
     FocusScope.of(context).unfocus();
+    _saving = true;
     ref
         .read(authControllerProvider.notifier)
         .resetPassword(_passwordController.text);
@@ -58,122 +73,95 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authControllerProvider);
     final isLoading = authState is AsyncLoading;
 
     ref.listen(authControllerProvider, (previous, next) {
-      if (next is AsyncData) {
+      if (!context.mounted) return;
+      if (next is AsyncData && _saving) {
+        _saving = false;
         context.go('/password_success');
       } else if (next is AsyncError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error.toString())),
-        );
+        _saving = false;
+        showAuthError(context, next.error);
       }
     });
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-          onPressed: () => context.pop(),
+    return AuthScaffold(
+      backFallback: '/login',
+      children: [
+        const Center(child: AuthEmblem(icon: Icons.key_outlined)),
+        SizedBox(height: 28.h),
+        Text(
+          'New password',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.displayMedium?.copyWith(height: 1.2),
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: AppDimensions.pagePadding.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
+        SizedBox(height: 12.h),
+        Text(
+          "Choose something strong. You've got this.",
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: Colors.white.withValues(alpha: 0.60),
+            height: 1.5,
+          ),
+        ),
+        SizedBox(height: 32.h),
+        AuthCard(
           children: [
-            SizedBox(height: 40.h),
-            Center(
-              child: SvgPicture.asset(
-                'assets/icons/ic_logo.svg',
-                width: 180.w,
-                fit: BoxFit.contain,
-              ),
-            ),
-            SizedBox(height: 40.h),
-
-            Text(
-              'New password',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.displayMedium,
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              'Choose something strong. You\'ve got this.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            SizedBox(height: 40.h),
-
             CustomTextField(
               controller: _passwordController,
-              hintText: 'Str0ng!Pass#2026',
+              hintText: l10n.authPassword,
               prefixIconPath: 'assets/icons/ic_password.svg',
               isPassword: true,
               textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.newPassword],
+              onFieldSubmitted: (_) => _confirmFocus.requestFocus(),
             ),
-            SizedBox(height: 8.h),
-
-            // Password strength indicator
-            ValueListenableBuilder<TextEditingValue>(
-              valueListenable: _passwordController,
-              builder: (context, value, child) {
-                final length = value.text.length;
-                if (length == 0) return const SizedBox.shrink();
-
-                final isStrong = length >= 8;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      height: 3.h,
-                      margin: EdgeInsetsDirectional.only(bottom: 8.h),
-                      decoration: BoxDecoration(
-                        gradient: isStrong ? AppColors.primaryGradient : null,
-                        color: isStrong ? null : AppColors.error,
-                        borderRadius: BorderRadius.circular(1.5.r),
-                      ),
-                    ),
-                    Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: Text(
-                        isStrong ? 'Strong' : 'Weak',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color:
-                              isStrong ? AppColors.mainBlue : AppColors.error,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-
-            SizedBox(height: 16.h),
-
+            PasswordStrengthBar(controller: _passwordController),
+            SizedBox(height: 14.h),
             CustomTextField(
               controller: _confirmPasswordController,
-              hintText: 'Str0ng!Pass#2026',
+              focusNode: _confirmFocus,
+              hintText: l10n.authConfirmPassword,
               prefixIconPath: 'assets/icons/ic_password.svg',
               isPassword: true,
               textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.newPassword],
               onFieldSubmitted: (_) {
+                _showMismatch.value = true;
                 if (_isValid.value) _onResetPassword();
               },
             ),
-            SizedBox(height: 32.h),
-
+            ValueListenableBuilder<bool>(
+              valueListenable: _showMismatch,
+              builder: (context, show, child) {
+                final mismatch = show &&
+                    _confirmPasswordController.text != _passwordController.text;
+                if (!mismatch) return SizedBox(height: 20.h);
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10.h),
+                  child: Row(
+                    children: [
+                      Icon(Icons.error_outline,
+                          size: 14.sp, color: AppColors.errorMain),
+                      SizedBox(width: 6.w),
+                      Text(
+                        "Passwords don't match",
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: AppColors.errorMain),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
             ValueListenableBuilder<bool>(
               valueListenable: _isValid,
               builder: (context, isValid, child) {
                 return CustomButton(
-                  text: AppLocalizations.of(context)!.authResetPassword,
+                  text: l10n.authResetPassword,
                   type: isValid
                       ? CustomButtonType.gradientFill
                       : CustomButtonType.primaryGrey,
@@ -182,33 +170,15 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                 );
               },
             ),
-
-            SizedBox(height: 40.h),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Back to ",
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: AppColors.textSecondary),
-                ),
-                GestureDetector(
-                  onTap: () => context.go('/login'),
-                  child: Text(
-                    AppLocalizations.of(context)!.authSignIn,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 40.h),
           ],
         ),
-      ),
+        SizedBox(height: 28.h),
+        AuthFooterLink(
+          question: 'Back to ',
+          action: l10n.authSignIn,
+          onTap: () => context.go('/login'),
+        ),
+      ],
     );
   }
 }

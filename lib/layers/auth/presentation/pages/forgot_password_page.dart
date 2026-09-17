@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:dsh_mobile/l10n/app_localizations.dart';
 
-import 'package:dsh_mobile/app/config/app_colors.dart';
-import 'package:dsh_mobile/app/config/app_dimensions.dart';
 import 'package:dsh_mobile/app/widgets/custom_button.dart';
 import 'package:dsh_mobile/app/widgets/custom_text_field.dart';
 import 'package:dsh_mobile/layers/auth/presentation/controllers/auth_controller.dart';
+import 'package:dsh_mobile/layers/auth/presentation/widgets/auth_scaffold.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -20,6 +19,13 @@ class ForgotPasswordPage extends ConsumerStatefulWidget {
 class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   final _emailController = TextEditingController();
   final _isValid = ValueNotifier<bool>(false);
+
+  /// True only between pressing "Send code" and arriving at the OTP screen.
+  ///
+  /// The controller's state is shared across the whole flow, so without this
+  /// an [AsyncData] that belongs to some other call would push a second OTP
+  /// screen on top of this one — the same trap the sign-up screen hit.
+  bool _sending = false;
 
   @override
   void initState() {
@@ -35,7 +41,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   }
 
   void _validateForm() {
-    final email = _emailController.text;
+    final email = _emailController.text.trim();
     final emailValid =
         RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
     _isValid.value = emailValid;
@@ -43,83 +49,70 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
   void _onSendCode() {
     FocusScope.of(context).unfocus();
+    _sending = true;
     ref
         .read(authControllerProvider.notifier)
-        .sendPasswordResetEmail(_emailController.text);
+        .sendPasswordResetEmail(_emailController.text.trim());
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authControllerProvider);
     final isLoading = authState is AsyncLoading;
 
     ref.listen(authControllerProvider, (previous, next) {
-      if (next is AsyncData) {
+      if (!context.mounted) return;
+      if (next is AsyncData && _sending) {
+        _sending = false;
         context.push('/otp');
       } else if (next is AsyncError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error.toString())),
-        );
+        _sending = false;
+        showAuthError(context, next.error);
       }
     });
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, size: 24),
-          onPressed: () => context.pop(),
+    return AuthScaffold(
+      backFallback: '/login',
+      children: [
+        const Center(child: AuthEmblem(icon: Icons.lock_reset_rounded)),
+        SizedBox(height: 28.h),
+        Text(
+          'Reset your password',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.displayMedium?.copyWith(height: 1.2),
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: AppDimensions.pagePadding.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        SizedBox(height: 12.h),
+        Text(
+          "Enter the email linked to your account and we'll send you a "
+          'verification code.',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: Colors.white.withValues(alpha: 0.60),
+            height: 1.5,
+          ),
+        ),
+        SizedBox(height: 32.h),
+        AuthCard(
           children: [
-            SizedBox(height: 40.h),
-            Center(
-              child: SvgPicture.asset(
-                'assets/icons/ic_logo.svg',
-                width: 140.w,
-                fit: BoxFit.contain,
-              ),
-            ),
-            SizedBox(height: 60.h),
-
-            Text(
-              'Reset your password',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.displayMedium,
-            ),
-            SizedBox(height: 12.h),
-            Text(
-              'Enter the email linked to your account and\nwe\'ll send you a verification code.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-                height: 1.5,
-              ),
-            ),
-            SizedBox(height: 40.h),
-
             CustomTextField(
               controller: _emailController,
-              hintText: 'Email address',
+              hintText: l10n.authEmailAddress,
               prefixIconPath: 'assets/icons/ic_email.svg',
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.username],
               onFieldSubmitted: (_) {
                 if (_isValid.value) _onSendCode();
               },
             ),
-            SizedBox(height: 24.h),
-
+            SizedBox(height: 20.h),
             ValueListenableBuilder<bool>(
               valueListenable: _isValid,
               builder: (context, isValid, child) {
                 return CustomButton(
-                  text: 'Send Code',
+                  text: 'Send code',
                   type: isValid
                       ? CustomButtonType.gradientFill
                       : CustomButtonType.primaryGrey,
@@ -128,33 +121,21 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                 );
               },
             ),
-
-            SizedBox(height: 80.h), // Spacing to push the bottom text down
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Remember your password? ",
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: AppColors.textSecondary),
-                ),
-                GestureDetector(
-                  onTap: () => context.go('/login'),
-                  child: Text(
-                    'Sign In',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 40.h),
           ],
         ),
-      ),
+        SizedBox(height: 28.h),
+        AuthFooterLink(
+          question: l10n.authRememberedPassword,
+          action: l10n.authSignIn,
+          onTap: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/login');
+            }
+          },
+        ),
+      ],
     );
   }
 }

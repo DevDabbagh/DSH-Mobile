@@ -209,4 +209,21 @@ class AppColors {
   // ── Navigation ──
   static const Color navActive = mainPurple;
   static const Color navInactive = lightGrey;
+
+  // ── Academy ──
+
+  /// The lime that marks a free programme — Figma 2266:1038 / 2266:1118, and
+  /// `FREE` in the website's `AcademyListing.tsx`.
+  ///
+  /// Its own colour rather than [successMain] on purpose. Green means "this
+  /// worked"; the Academy frame uses this to mean "this costs nothing", which
+  /// is a fact about the programme and not a result of anything the reader
+  /// did. Reusing the success green would have made a price look like a
+  /// confirmation, and would have tied two unrelated things to one value.
+  static const Color academyFree = Color(0xFFBCCB2E);
+
+  /// The grey the Academy frame uses for a placeholder and for the delivery
+  /// format beside a chip — #555, between [mediumGrey] and [darkBackground]
+  /// and equal to neither.
+  static const Color academyMuted = Color(0xFF555555);
 }
