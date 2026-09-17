@@ -1,26 +1,27 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'app_router.dart';
+part of 'read_repository_impl.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appRouterHash() => r'e61d1380495c42022b32f847df315fb72ce8d820';
+String _$readRepositoryHash() => r'3aaffed6acda03535a68b2b8dd4210918f7d0ba2';
 
-/// See also [appRouter].
-@ProviderFor(appRouter)
-final appRouterProvider = Provider<GoRouter>.internal(
-  appRouter,
-  name: r'appRouterProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$appRouterHash,
+/// See also [readRepository].
+@ProviderFor(readRepository)
+final readRepositoryProvider = AutoDisposeProvider<ReadRepository>.internal(
+  readRepository,
+  name: r'readRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$readRepositoryHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef AppRouterRef = ProviderRef<GoRouter>;
+typedef ReadRepositoryRef = AutoDisposeProviderRef<ReadRepository>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
